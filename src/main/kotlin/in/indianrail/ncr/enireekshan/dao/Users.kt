@@ -1,13 +1,14 @@
 package `in`.indianrail.ncr.enireekshan.dao
 
 import `in`.indianrail.ncr.enireekshan.model.UserModel
-import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.dao.Entity
+import org.jetbrains.exposed.dao.EntityClass
+import org.jetbrains.exposed.dao.EntityID
+import org.jetbrains.exposed.dao.IdTable
 import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.Table
 
 object Users : IdTable<Long>() {
-    override val id: Column<EntityID<Long>>
-        get() = long("phone").primaryKey().entityId()
+    override val id: Column<EntityID<Long>> = long("phone").primaryKey().entityId()
     val department = text("department")
     val designation = text("designation")
     val location = text("location")

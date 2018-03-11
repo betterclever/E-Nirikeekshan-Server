@@ -15,13 +15,24 @@ object Inspections : IntIdTable() {
 }
 
 class Inspection(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Inspection>(Inspections)
+    companion object : IntEntityClass<Inspection>(Inspections) {
+        fun fromInspectionModel(inspectionModel: InspectionModel): Inspection = new {
+            inspectionModel.let {
+                title = it.title
+                status = it.status
+                reportID = "ABC"
+                timestamp = it.timestamp
+               // submittedBy = it.submittedBy.
+            }
+        }
+    }
+
     var title by Inspections.title
     var inspectionID by Inspections.id
     var status by Inspections.status
     var reportID by Inspections.reportID
     var timestamp by Inspections.timestamp
-    var assignees by UserEntity via InspectionAssignees
+    val assignees by UserEntity via InspectionAssignees
     var submittedBy by UserEntity referencedOn Inspections.submittedBy
 
     fun getInspectionModel() = InspectionModel(
