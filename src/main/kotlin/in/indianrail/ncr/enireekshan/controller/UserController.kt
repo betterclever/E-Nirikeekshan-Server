@@ -1,27 +1,15 @@
-package `in`.indianrail.ncr.enireekshan.dao.controller
+package `in`.indianrail.ncr.enireekshan.controller
 
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.model.UserModel
+import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class UserController {
-
-    /*fun getAll(): List<User> {
-        return transaction {
-            Users.selectAll().map {
-                User(
-                        phone = it[Users.phone],
-                        department = it[Users.department],
-                        designation = it[Users.designation],
-                        location = it[Users.location],
-                        name = it[Users.name]
-                )
-            }
-        }
-    }*/
 
     /*fun updateUser(user: User) {
         return transaction {
@@ -73,15 +61,30 @@ class UserController {
         }
     }
 
-    fun getUser(phone: Int): UserEntity? {
+    fun getUser(phone: Long): UserEntity? {
         return transaction {
             UserEntity.findById(phone)
         }
     }
 
-    fun getAllUsers(): List<UserEntity> {
+    fun getAllUsers(): List<UserModel> {
         return transaction {
-            UserEntity.all().toList()
+            UserEntity.all().map { it.getUserModel() }
+        }
+    }
+
+    fun addUser(user: UserModel): UserModel {
+        return transaction {
+            UserEntity.new(user.phone, {
+                user.let {
+                    name = it.name
+                    department = it.department
+                    designation = it.designation
+                    department = it.department
+                    location = it.location
+                    assignable = it.assignable
+                }
+            }).getUserModel()
         }
     }
 }

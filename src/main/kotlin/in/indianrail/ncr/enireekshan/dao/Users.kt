@@ -1,12 +1,13 @@
 package `in`.indianrail.ncr.enireekshan.dao
 
-import org.jetbrains.exposed.dao.EntityID
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.IntIdTable
+import `in`.indianrail.ncr.enireekshan.model.UserModel
+import org.jetbrains.exposed.dao.*
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Table
 
-object Users : IntIdTable() {
-    val phone = integer("phone").primaryKey()
+object Users : IdTable<Long>() {
+    override val id: Column<EntityID<Long>>
+        get() = long("phone").primaryKey().entityId()
     val department = text("department")
     val designation = text("designation")
     val location = text("location")
@@ -14,13 +15,23 @@ object Users : IntIdTable() {
     val assignable = bool("assignable")
 }
 
-class UserEntity(id: EntityID<Int>): IntEntity(id) {
-    companion object : IntEntityClass<UserEntity>(Users)
-    var phone by Users.phone
+class UserEntity(phone: EntityID<Long>) : Entity<Long>(phone) {
+    companion object : EntityClass<Long, UserEntity>(Users)
+
+    var phone by Users.id
     var name by Users.name
     var location by Users.location
     var designation by Users.designation
     var department by Users.department
     var assignable by Users.assignable
+
+    fun getUserModel() = UserModel(
+            name = name,
+            phone = phone.value,
+            location = location,
+            designation = designation,
+            department = department,
+            assignable = assignable
+    )
 }
 

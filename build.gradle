@@ -14,8 +14,8 @@ group 'in.indianrail.ncr'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'kotlin'
+apply plugin: 'application'
 
-//mainClassName = 'io.ktor.server.netty.DevelopmentEngine'
 
 repositories {
     mavenCentral()
