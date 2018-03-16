@@ -22,5 +22,5 @@ data class AssigneeRole(
 data class InspectionCreateModel(
         val title : String,
         val submitterID: Long,
-        val assigneesRoles : List<AssigneeRole>
+        val assigneeRoles: List<AssigneeRole>
 )

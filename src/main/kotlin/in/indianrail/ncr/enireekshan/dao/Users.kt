@@ -13,6 +13,7 @@ object Users : IdTable<Long>() {
     val designation = text("designation")
     val location = text("location")
     val name = text("name")
+    val fcmToken = text("fcmToken").nullable()
     val assignable = bool("assignable")
 }
 
@@ -22,6 +23,7 @@ class UserEntity(phone: EntityID<Long>) : Entity<Long>(phone) {
     var phone by Users.id
     var name by Users.name
     var location by Users.location
+    var fcmToken by Users.fcmToken
     var designation by Users.designation
     var department by Users.department
     var assignable by Users.assignable

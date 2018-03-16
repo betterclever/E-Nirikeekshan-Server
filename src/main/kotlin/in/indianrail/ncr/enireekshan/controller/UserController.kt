@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
 class UserController {
 
@@ -22,69 +23,67 @@ class UserController {
         }
     }*/
 
-    fun getLocations(): List<String> {
-        return transaction {
-            Users.slice(Users.location)
-                    .selectAll()
-                    .withDistinct(true)
-                    .groupBy(Users.location).map {
-                        it[Users.location]
-                    }
+    fun getLocations(): List<String> = transaction {
+        Users.slice(Users.location)
+                .selectAll()
+                .withDistinct(true)
+                .groupBy(Users.location).map {
+            it[Users.location]
         }
     }
 
-    fun getDepartments(location: String): List<String> {
-        return transaction {
-            Users.slice(Users.department)
-                    .select({
-                        (Users.location eq location) and
-                                (Users.assignable eq true)
-                    })
-                    .withDistinct(true)
-                    .map {
-                        it[Users.department]
-                    }
-        }
-    }
 
-    fun getDesignations(department: String, location: String): List<String> {
-        return transaction {
-            Users.slice(Users.designation)
-                    .select({
-                        (Users.location eq location) and (Users.department eq department) and
-                                (Users.assignable eq true)
-                    })
-                    .withDistinct(true)
-                    .map {
-                        it[Users.designation]
-                    }
-        }
-    }
-
-    fun getUser(phone: Long): UserEntity? {
-        return transaction {
-            UserEntity.findById(phone)
-        }
-    }
-
-    fun getAllUsers(): List<UserModel> {
-        return transaction {
-            UserEntity.all().map { it.getUserModel() }
-        }
-    }
-
-    fun addUser(user: UserModel): UserModel {
-        return transaction {
-            UserEntity.new(user.phone, {
-                user.let {
-                    name = it.name
-                    department = it.department
-                    designation = it.designation
-                    department = it.department
-                    location = it.location
-                    assignable = it.assignable
+    fun getDepartments(location: String): List<String> = transaction {
+        Users.slice(Users.department, Users.location)
+                .select({
+                    (Users.location eq location) and
+                            (Users.assignable eq false)
+                })
+                .withDistinct(true)
+                .map {
+                    it[Users.department]
                 }
-            }).getUserModel()
+    }
+
+
+    fun getDesignations(department: String, location: String): List<String> = transaction {
+        Users.slice(Users.designation)
+                .select({
+                    (Users.location eq location) and (Users.department eq department) and
+                            (Users.assignable eq false)
+                })
+                .withDistinct(true)
+                .map {
+                    it[Users.designation]
+                }
+    }
+
+
+    fun getUser(phone: Long): UserEntity? = transaction {
+        UserEntity.findById(phone)
+    }
+
+
+    fun getAllUsers(): List<UserModel> = transaction {
+        UserEntity.all().map { it.getUserModel() }
+    }
+
+    fun updateFCMToken(userID: Long, fcmToken: String) = transaction {
+        Users.update({ Users.id eq userID }) {
+            it[Users.fcmToken] = fcmToken
         }
     }
+
+    fun addUser(user: UserModel): UserModel = transaction {
+        UserEntity.new(user.phone, {
+            user.let {
+                name = it.name
+                department = it.department
+                designation = it.designation
+                location = it.location
+                assignable = it.assignable
+            }
+        }).getUserModel()
+    }
+
 }
