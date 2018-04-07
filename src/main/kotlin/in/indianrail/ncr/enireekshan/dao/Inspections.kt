@@ -10,38 +10,35 @@ object Inspections : IntIdTable() {
     val title = text("title")
     val status = text("status")
     val timestamp = long("timestamp")
+    val mediaRef = text("media").nullable()
+    val urgent = bool("urgent")
     val submittedBy = reference("submittedBy", Users)
     val reportID = text("reportID")
 }
 
 class Inspection(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Inspection>(Inspections) {
-        fun fromInspectionModel(inspectionModel: InspectionModel): Inspection = new {
-            inspectionModel.let {
-                title = it.title
-                status = it.status
-                reportID = "ABC"
-                timestamp = it.timestamp
-               // submittedBy = it.submittedBy.
-            }
-        }
-    }
+    companion object : IntEntityClass<Inspection>(Inspections)
 
     var title by Inspections.title
     var inspectionID by Inspections.id
     var status by Inspections.status
+    var urgent by Inspections.urgent
+    val mediaRef by Inspections.mediaRef
     var reportID by Inspections.reportID
     var timestamp by Inspections.timestamp
     val assignees by UserEntity via InspectionAssignees
     var submittedBy by UserEntity referencedOn Inspections.submittedBy
 
     fun getInspectionModel() = InspectionModel(
-            title = title,
-            status = status,
             assignees = assignees.map { it.getUserModel() },
-            timestamp = timestamp,
+            id = id.value,
+            mediaRef = mediaRef,
+            reportID = reportID,
+            status = status,
             submittedBy = submittedBy.getUserModel(),
-            reportID = reportID
+            timestamp = timestamp,
+            title = title,
+            urgent = urgent
     )
 }
 

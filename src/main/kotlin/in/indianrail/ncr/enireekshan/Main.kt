@@ -5,6 +5,7 @@ import `in`.indianrail.ncr.enireekshan.controller.UserController
 import `in`.indianrail.ncr.enireekshan.dao.InspectionAssignees
 import `in`.indianrail.ncr.enireekshan.dao.Inspections
 import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.model.FileInfo
 import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
 import `in`.indianrail.ncr.enireekshan.model.UserModel
 import com.google.auth.oauth2.GoogleCredentials
@@ -23,12 +24,9 @@ import io.ktor.gson.gson
 import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
-import io.ktor.routing.Routing
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
+import io.ktor.routing.*
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import io.ktor.util.error
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
@@ -67,7 +65,7 @@ fun main(args: Array<String>) {
     //val decodedToken = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken).get()
     //val uid = decodedToken.uid
 
-    embeddedServer(Netty, 8080) {
+    embeddedServer(CIO, 8080) {
 
         install(Compression)
         install(CORS) {
@@ -90,16 +88,16 @@ fun main(args: Array<String>) {
                 route("/users") {
                     val userController = UserController()
                     get("/locations") {
-                        val auth = call.request.headers["Authorization"]
-                        println("auth: $auth")
+                        //val auth = call.request.headers["Authorization"]
+                        //println("auth: $auth")
                         call.respond(userController.getLocations())
                     }
                     get("/{location}/departments") {
-                        val authToken = call.request.headers["Authorization"]
+                        //val authToken = call.request.headers["Authorization"]
 
-                        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
-                        val uid = decodedToken.uid
-                        println(uid)
+                        //val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
+                        //val uid = decodedToken.uid
+                        //println(uid)
 
                         val location = call.parameters["location"]
                         if (location != null) {
@@ -127,6 +125,7 @@ fun main(args: Array<String>) {
                 }
                 route("/inspections") {
                     val inspectionController = InspectionController()
+
                     get("/markedTo/{userID}") {
                         val userID = call.parameters["userID"]
                         if (userID != null) {
@@ -150,6 +149,38 @@ fun main(args: Array<String>) {
                             }
                         } else call.respond(emptyArray<Int>())
                     }
+
+                    get("/{id}") {
+                        val idS = call.parameters["id"]
+                        if (idS != null) {
+                            val response = try {
+                                val id = idS.toInt()
+                                inspectionController.getInspectionByID(id)
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                null
+                            }
+                            call.respond(response ?: "Not Found")
+                        }
+                    }
+
+                    patch("/{id}/updateStatus") {
+                        val newStatus = call.receive<String>()
+                        val idS = call.parameters["id"]
+                        if (idS != null) {
+                            val response = try {
+                                val id = idS.toInt()
+                                inspectionController.updateInspectionStatus(id, newStatus)
+                                "Success"
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                "Failed"
+                            }
+                            call.respond(response)
+                        }
+                    }
+
+
                     post("/new") {
                         val inspectionCreateModel = call.receive<InspectionCreateModel>()
                         call.respond(inspectionController.addInspection(inspectionCreateModel))
@@ -161,14 +192,24 @@ fun main(args: Array<String>) {
                         var title = ""
                         var videoFile: File? = null
 
+                        var uploadName = ""
+
                         multipart.forEachPart { part ->
                             when (part) {
-                                is PartData.FormItem -> if (part.name == "title") {
+                                is PartData.FormItem -> {
                                     title = part.value
+                                    println(part.value)
                                 }
                                 is PartData.FileItem -> {
+
+
                                     val ext = File(part.originalFileName).extension
-                                    val file = File(uploadDir, "upload-${System.currentTimeMillis()}-${"AVX".hashCode()}-${title.hashCode()}.$ext")
+
+                                    uploadName = "upload-${System.currentTimeMillis()}-" +
+                                            "${part.originalFileName!!.hashCode()}.$ext"
+
+                                    val file = File(uploadDir, "upload-${System.currentTimeMillis()}-" +
+                                            "${part.originalFileName!!.hashCode()}.$ext")
                                     part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyTo(it) } }
                                     videoFile = file
                                 }
@@ -177,7 +218,10 @@ fun main(args: Array<String>) {
                             part.dispose()
                         }
 
-                        call.respond("done")
+                        call.respond(FileInfo(
+                                type = "photo",
+                                storageRef = uploadName
+                        ))
                     }
                 }
             }
