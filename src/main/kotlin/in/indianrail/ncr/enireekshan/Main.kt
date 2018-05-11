@@ -14,6 +14,7 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.application.log
@@ -47,7 +48,7 @@ fun initDB() {
 
 val topLevelClass = object : Any() {}.javaClass.enclosingClass
 
-fun main(args: Array<String>) {
+fun Application.main() {
 
     val serviceAccount = topLevelClass.classLoader
             .getResourceAsStream("e-nirikshan-firebase-adminsdk-qj7uv-8f4c1dee28.json")
@@ -65,9 +66,7 @@ fun main(args: Array<String>) {
     //val decodedToken = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken).get()
     //val uid = decodedToken.uid
 
-    embeddedServer(CIO, 8080) {
-
-        install(Compression)
+   install(Compression)
         install(CORS) {
             anyHost()
         }
@@ -225,7 +224,5 @@ fun main(args: Array<String>) {
                     }
                 }
             }
-        }
-
-    }.start(wait = true)
+    }
 }
