@@ -1,5 +1,6 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
+import `in`.indianrail.ncr.enireekshan.NotificationUtils
 import `in`.indianrail.ncr.enireekshan.currentTimeStamp
 import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
@@ -12,6 +13,8 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class InspectionController {
+
+    val notificationUtils = NotificationUtils()
 
     fun getInspectionAssignedTo(userID: Long, page: Int = 1): List<InspectionModel> = transaction {
         (Inspections innerJoin InspectionAssignees)
@@ -43,6 +46,7 @@ class InspectionController {
             it[timestamp] = currentTimeStamp
             it[submittedBy] = EntityID(inspectionModel.submitterID, Users)
         }
+        val recepients = mutableListOf<String>()
         inspectionModel.assigneeRoles.forEach {
             /*val messaging = FirebaseMessaging.getInstance()
             val message = Message.builder()
@@ -54,12 +58,18 @@ class InspectionController {
                         (Users.department eq it.department)
             }
             res.forEach { row ->
+                row[Users.fcmToken]?.let { recepients.add(it) }
                 InspectionAssignees.insert {
                     it[inspectionID] = newInspectionID
                     it[userID] = row[Users.id]
                 }
             }
         }
+        // Send a notification
+        notificationUtils.sendNotification(inspectionModel.title, mapOf(
+                "type" to "New Assignment",
+                "sentBy" to "${inspectionModel.submitterID}"
+        ), recepients)
     }
 
     fun getInspectionByID(id: Int) = transaction {
