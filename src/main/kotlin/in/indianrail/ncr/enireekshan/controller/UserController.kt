@@ -3,7 +3,6 @@ package `in`.indianrail.ncr.enireekshan.controller
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.model.UserModel
-import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -70,6 +69,24 @@ class UserController {
                 }
     }
 
+    fun searchUser(searchString: String): List<UserModel> = transaction {
+        return@transaction exec("select * from Users where " +
+                "similarity(LOWER('$searchString'), LOWER(concat(designation, location))) > 0.6 " +
+                "ORDER BY similarity(LOWER('sr dcm agra'), LOWER(concat(designation, location))) DESC;", {
+            val result = mutableListOf<UserModel>()
+            while (it.next()) {
+                result.add(UserModel(
+                        phone = it.getLong(1),
+                        name = it.getString(5),
+                        department = it.getString(2),
+                        designation = it.getString(3),
+                        location = it.getString(4),
+                        assignable = it.getBoolean(7)
+                ))
+            }
+            return@exec result
+        }) ?: emptyList<UserModel>()
+    }
 
     fun getUser(phone: Long): UserEntity? = transaction {
         UserEntity.findById(phone)

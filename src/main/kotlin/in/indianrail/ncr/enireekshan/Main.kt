@@ -229,20 +229,15 @@ fun Application.main() {
                                     println(part.value)
                                 }
                                 is PartData.FileItem -> {
-
-
                                     val ext = File(part.originalFileName).extension
-
                                     uploadName = "upload-${System.currentTimeMillis()}-" +
                                             "${part.originalFileName!!.hashCode()}.$ext"
-
                                     val file = File(uploadDir, "upload-${System.currentTimeMillis()}-" +
                                             "${part.originalFileName!!.hashCode()}.$ext")
                                     part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyTo(it) } }
                                     videoFile = file
                                 }
                             }
-
                             part.dispose()
                         }
 

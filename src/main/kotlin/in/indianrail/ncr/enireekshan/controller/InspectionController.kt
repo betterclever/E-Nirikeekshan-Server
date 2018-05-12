@@ -6,8 +6,6 @@ import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
 import `in`.indianrail.ncr.enireekshan.model.InspectionModel
 import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.Message
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -43,6 +41,7 @@ class InspectionController {
             it[status] = STATUS_UNSEEN
             it[urgent] = inspectionModel.urgent
             it[reportID] = "abc"
+            it[mediaRef] = inspectionModel.mediaRef
             it[timestamp] = currentTimeStamp
             it[submittedBy] = EntityID(inspectionModel.submitterID, Users)
         }
@@ -97,7 +96,7 @@ class InspectionController {
     }
 
     private fun ResultRow.prepareInspectionModel() = InspectionModel(
-            id = 0,
+            id = this[Inspections.id].value,
             mediaRef = this[Inspections.mediaRef],
             title = this[Inspections.title],
             urgent = this[Inspections.urgent],
