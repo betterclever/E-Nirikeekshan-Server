@@ -4,6 +4,7 @@ import `in`.indianrail.ncr.enireekshan.controller.InspectionController
 import `in`.indianrail.ncr.enireekshan.controller.UserController
 import `in`.indianrail.ncr.enireekshan.dao.InspectionAssignees
 import `in`.indianrail.ncr.enireekshan.dao.Inspections
+import `in`.indianrail.ncr.enireekshan.dao.Messages
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.model.FileInfo
 import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
@@ -19,14 +20,11 @@ import io.ktor.content.PartData
 import io.ktor.content.forEachPart
 import io.ktor.features.*
 import io.ktor.gson.gson
-import io.ktor.http.Headers
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
 import io.ktor.routing.*
-import io.ktor.server.cio.CIO
-import io.ktor.server.engine.embeddedServer
 import io.ktor.util.error
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
@@ -40,7 +38,7 @@ fun initDB() {
     Database.connect(ds)
 
     transaction {
-        create(Users, Inspections, InspectionAssignees)
+        create(Users, Inspections, InspectionAssignees, Messages)
     }
 }
 
@@ -56,7 +54,7 @@ suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall,
         if (userController.verifyUser(phoneNumber)) block(phoneNumber) else throw Exception("Unverified User")
     } catch (exception: Exception) {
         exception.printStackTrace()
-        call.respond(HttpStatusCode(500, "Unauthorized access"), "Unauthorized")
+        call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
     }
 }
 
@@ -179,7 +177,24 @@ fun Application.main() {
                                 exception.printStackTrace()
                                 null
                             }
-                            call.respond(response ?: "Not Found")
+                            if(response!=null) {
+                                call.respond(response)
+                            } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+                        }
+                    })
+                }
+
+                get("/{id}/messages") {
+                    runVerifed(firebaseAuth, call, {
+                        val idS = call.parameters["id"]
+                        if(idS!=null) {
+                            try {
+                                val id = idS.toInt()
+                                call.respond(inspectionController.getMessages(id))
+                            } catch (expection: Exception) {
+                                expection.printStackTrace()
+                                call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+                            }
                         }
                     })
                 }
@@ -206,6 +221,7 @@ fun Application.main() {
                 post("/new") {
                     runVerifed(firebaseAuth, call, {
                         val inspectionCreateModel = call.receive<InspectionCreateModel>()
+                        println(inspectionCreateModel)
                         call.respond(inspectionController.addInspection(inspectionCreateModel))
                     })
                 }

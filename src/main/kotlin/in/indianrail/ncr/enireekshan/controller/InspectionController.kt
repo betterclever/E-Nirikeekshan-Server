@@ -5,6 +5,7 @@ import `in`.indianrail.ncr.enireekshan.currentTimeStamp
 import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
 import `in`.indianrail.ncr.enireekshan.model.InspectionModel
+import `in`.indianrail.ncr.enireekshan.model.MessageModel
 import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
@@ -33,6 +34,19 @@ class InspectionController {
         q.map {
             it.prepareInspectionModel()
         }
+    }
+
+    fun addMessage(inspectionID: Int, messageString: String, userID: Long) = transaction {
+        val newMessgaeID = Messages.insertAndGetId {
+            it[message] = messageString
+            it[inspection] = EntityID(inspectionID, Inspections)
+            it[sender] = EntityID(userID, Users)
+        }
+    }
+
+    fun getMessages(inspectionID: Int): List<MessageModel> = transaction {
+        Messages.select { Messages.inspection eq inspectionID }
+                .map { it.prepareMessgaeModel() }
     }
 
     fun addInspection(inspectionModel: InspectionCreateModel) = transaction {
@@ -94,6 +108,12 @@ class InspectionController {
                     it.prepareInspectionModel()
                 }
     }
+
+    private fun ResultRow.prepareMessgaeModel() = MessageModel(
+            message = this[Messages.message],
+            sender = UserEntity[this[Messages.sender]].getUserModel(),
+            inspectionID = this[Messages.inspection].value
+    )
 
     private fun ResultRow.prepareInspectionModel() = InspectionModel(
             id = this[Inspections.id].value,
