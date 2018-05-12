@@ -16,14 +16,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
-import io.ktor.content.PartData
-import io.ktor.content.forEachPart
+import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
+import io.ktor.response.respondFile
 import io.ktor.routing.*
 import io.ktor.util.error
 import org.jetbrains.exposed.sql.Database
@@ -184,6 +184,22 @@ fun Application.main() {
                     })
                 }
 
+                post("/{id}/messages") {
+                    runVerifed(firebaseAuth, call, {
+                        val idS = call.parameters["id"]
+                        val message = call.receive<String>()
+                        if(idS!=null) {
+                            try {
+                                val id = idS.toInt()
+                                call.respond(inspectionController.addMessage(id, message, it))
+                            } catch (expection: Exception) {
+                                expection.printStackTrace()
+                                call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+                            }
+                        }
+                    })
+                }
+
                 get("/{id}/messages") {
                     runVerifed(firebaseAuth, call, {
                         val idS = call.parameters["id"]
@@ -227,6 +243,16 @@ fun Application.main() {
                 }
             }
             route("/files") {
+
+                val baseDir =File("/home/enireekshan/server-uploads")
+                get("/{name}") {
+                    runVerifed(firebaseAuth, call, {
+                        val name = call.parameters["name"]
+                        if (name != null) {
+                            call.respondFile(baseDir, name)
+                        }
+                    })
+                }
 
                 post("/new") {
 
