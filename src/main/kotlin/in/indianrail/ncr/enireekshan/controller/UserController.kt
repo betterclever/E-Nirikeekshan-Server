@@ -3,6 +3,7 @@ package `in`.indianrail.ncr.enireekshan.controller
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.model.UserModel
+import com.google.cloud.storage.Acl
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
@@ -88,10 +89,18 @@ class UserController {
         }) ?: emptyList<UserModel>()
     }
 
-    fun getUser(phone: Long): UserEntity? = transaction {
-        UserEntity.findById(phone)
+    fun getUser(phone: Long): UserModel? = transaction {
+        UserEntity.findById(phone)?.getUserModel()
     }
 
+    fun updateUser(phone: Long, user: UserModel) = transaction {
+        Users.update({ Users.id eq phone }) {
+            it[name] = user.name
+            it[location] = user.location
+            it[designation] = user.designation
+            it[department] = user.department
+        }
+    }
 
     fun getAllUsers(): List<UserModel> = transaction {
         UserEntity.all().map { it.getUserModel() }

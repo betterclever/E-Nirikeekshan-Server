@@ -127,6 +127,45 @@ fun Application.main() {
                         call.respond(userController.addUser(user))
                     })
                 }
+                get("/{id}") {
+                    runVerifed(firebaseAuth, call, {
+                        val userID = call.parameters["id"]
+                        val result = if(userID!=null) {
+                            try {
+                                val uid = userID.toLong()
+                                val user = userController.getUser(uid)
+                                println(user)
+                                user
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                null
+                            }
+                        } else null
+                        if (result != null) call.respond(result) else {
+                            call.respond(HttpStatusCode(404, "Not Found"), "Not Found")
+                        }
+                    })
+                }
+
+                post("/{id}") {
+                    runVerifed(firebaseAuth, call, {
+                        val userID = call.parameters["id"]
+                        val result = if(userID!=null) {
+                            try {
+                                val uid = userID.toLong()
+                                val userModel = call.receive<UserModel>()
+                                userController.updateUser(uid, userModel)
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                null
+                            }
+                        } else null
+                        if (result != null) call.respond(result) else {
+                            call.respond(HttpStatusCode(401, "Invalid Operation"), "Invalid Operation")
+                        }
+                    })
+                }
+
 
                 post("/updateFCMToken") {
                     runVerifed(firebaseAuth, call, {
