@@ -48,11 +48,7 @@ class InspectionController {
         }
         val recepients = mutableListOf<String>()
         inspectionModel.assigneeRoles.forEach {
-            /*val messaging = FirebaseMessaging.getInstance()
-            val message = Message.builder()
-                    .putData("sender", )
-            */
-            val res = Users.slice(Users.id).select {
+            val res = Users.slice(Users.id, Users.fcmToken).select {
                 (Users.location eq it.location) and
                         (Users.designation eq it.designation) and
                         (Users.department eq it.department)

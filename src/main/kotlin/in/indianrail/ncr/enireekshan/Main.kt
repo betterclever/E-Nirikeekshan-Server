@@ -55,6 +55,7 @@ suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall,
         val phoneNumber = phone.substringAfter("+91").toLong()
         if (userController.verifyUser(phoneNumber)) block(phoneNumber) else throw Exception("Unverified User")
     } catch (exception: Exception) {
+        exception.printStackTrace()
         call.respond(HttpStatusCode(500, "Unauthorized access"), "Unauthorized")
     }
 }
