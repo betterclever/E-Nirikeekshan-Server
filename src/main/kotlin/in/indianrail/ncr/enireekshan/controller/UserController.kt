@@ -23,11 +23,10 @@ class UserController {
         }
     }*/
 
-    fun verifyUser(phone: String): Boolean {
+    fun verifyUser(phoneNumber: Long): Boolean {
         try {
-            val phone = phone.substringAfter("+91").toLong()
             return transaction {
-                val d = Users.select({ Users.id eq phone})
+                val d = Users.select({ Users.id eq phoneNumber})
                         .map { it }
                 return@transaction d.isNotEmpty()
             }

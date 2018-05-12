@@ -14,10 +14,7 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.application.Application
-import io.ktor.application.call
-import io.ktor.application.install
-import io.ktor.application.log
+import io.ktor.application.*
 import io.ktor.content.PartData
 import io.ktor.content.forEachPart
 import io.ktor.features.*
@@ -37,7 +34,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.text.DateFormat
 
-
 fun initDB() {
     val config = HikariConfig("/hikari.properties")
     val ds = HikariDataSource(config)
@@ -49,6 +45,19 @@ fun initDB() {
 }
 
 val topLevelClass = object : Any() {}.javaClass.enclosingClass
+val userController = UserController()
+
+suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
+    try {
+        val authToken = call.request.headers["Authorization"]
+        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
+        val phone = decodedToken.claims["phone_number"] as String
+        val phoneNumber = phone.substringAfter("+91").toLong()
+        if (userController.verifyUser(phoneNumber)) block(phoneNumber) else throw Exception("Unverified User")
+    } catch (exception: Exception) {
+        call.respond(HttpStatusCode(500, "Unauthorized access"), "Unauthorized")
+    }
+}
 
 fun Application.main() {
 
@@ -63,56 +72,42 @@ fun Application.main() {
     FirebaseApp.initializeApp(options)
     val firebaseAuth = FirebaseAuth.getInstance()
 
-    val userController = UserController()
-
-    fun verifyToken(headers: Headers) : Boolean {
-        val authToken = headers["Authorization"]
-        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
-
-        return try {
-            val phone = decodedToken.claims["phone_number"] as String
-            userController.verifyUser(phone)
-        } catch (exception: Exception) {
-            false
+    install(Compression)
+    install(CORS) {
+        anyHost()
+    }
+    install(DefaultHeaders)
+    install(CallLogging)
+    install(ContentNegotiation) {
+        gson {
+            setDateFormat(DateFormat.LONG)
+            setPrettyPrinting()
         }
     }
+    initDB()
 
-    install(Compression)
-        install(CORS) {
-            anyHost()
-        }
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(ContentNegotiation) {
-            gson {
-                setDateFormat(DateFormat.LONG)
-                setPrettyPrinting()
-            }
-        }
-        initDB()
+    val uploadDir = File("/home/enireekshan/server-uploads")
 
-        val uploadDir = File("/home/betterclever/Videos")
-
-        install(Routing) {
-            route("/api") {
-                route("/users") {
-                    get("/locations") {
-                        val auth = call.request.headers["Authorization"]
-                        println("auth: $auth")
-
+    install(Routing) {
+        route("/api") {
+            route("/users") {
+                get("/locations") {
+                    runVerifed(firebaseAuth, call, {
                         call.respond(userController.getLocations())
-                    }
-                    get("/{location}/departments") {
-                        if(verifyToken(call.request.headers)) {
-                            val location = call.parameters["location"]
-                            if (location != null) {
-                                call.respond(userController.getDepartments(location))
-                            } else {
-                                call.respond(emptyArray<String>())
-                            }
-                        } else call.respond(HttpStatusCode(500, "Unauthorized access"), "Unauthorized")
-                    }
-                    get("/{location}/{department}/designations") {
+                    })
+                }
+                get("/{location}/departments") {
+                    runVerifed(firebaseAuth, call, {
+                        val location = call.parameters["location"]
+                        if (location != null) {
+                            call.respond(userController.getDepartments(location))
+                        } else {
+                            call.respond(emptyArray<String>())
+                        }
+                    })
+                }
+                get("/{location}/{department}/designations") {
+                    runVerifed(firebaseAuth, call, {
                         val location = call.parameters["location"]
                         val department = call.parameters["department"]
                         if (location != null && department != null) {
@@ -120,19 +115,32 @@ fun Application.main() {
                         } else {
                             call.respond(emptyArray<String>())
                         }
-                    }
-                    get("/") {
+                    })
+                }
+                get("/") {
+                    runVerifed(firebaseAuth, call, {
                         call.respond(userController.getAllUsers())
-                    }
-                    post("/") {
+                    })
+                }
+                post("/") {
+                    runVerifed(firebaseAuth, call, {
                         val user = call.receive<UserModel>()
                         call.respond(userController.addUser(user))
-                    }
+                    })
                 }
-                route("/inspections") {
-                    val inspectionController = InspectionController()
 
-                    get("/markedTo/{userID}") {
+                post("/updateFCMToken") {
+                    runVerifed(firebaseAuth, call, {
+                        val token = call.receive<String>()
+                        call.respond(userController.updateFCMToken(it, token))
+                    })
+                }
+            }
+            route("/inspections") {
+                val inspectionController = InspectionController()
+
+                get("/markedTo/{userID}") {
+                    runVerifed(firebaseAuth, call, {
                         val userID = call.parameters["userID"]
                         if (userID != null) {
                             try {
@@ -142,8 +150,10 @@ fun Application.main() {
                                 log.error(e)
                             }
                         } else call.respond(emptyArray<Int>())
-                    }
-                    get("/submittedBy/{userID}") {
+                    })
+                }
+                get("/submittedBy/{userID}") {
+                    runVerifed(firebaseAuth, call, {
                         val userID = call.parameters["userID"]
                         if (userID != null) {
                             try {
@@ -154,9 +164,11 @@ fun Application.main() {
                                 log.error(e)
                             }
                         } else call.respond(emptyArray<Int>())
-                    }
+                    })
+                }
 
-                    get("/{id}") {
+                get("/{id}") {
+                    runVerifed(firebaseAuth, call, {
                         val idS = call.parameters["id"]
                         if (idS != null) {
                             val response = try {
@@ -168,9 +180,11 @@ fun Application.main() {
                             }
                             call.respond(response ?: "Not Found")
                         }
-                    }
+                    })
+                }
 
-                    patch("/{id}/updateStatus") {
+                patch("/{id}/updateStatus") {
+                    runVerifed(firebaseAuth, call, {
                         val newStatus = call.receive<String>()
                         val idS = call.parameters["id"]
                         if (idS != null) {
@@ -184,16 +198,23 @@ fun Application.main() {
                             }
                             call.respond(response)
                         }
-                    }
+                    })
+                }
 
 
-                    post("/new") {
+                post("/new") {
+                    runVerifed(firebaseAuth, call, {
                         val inspectionCreateModel = call.receive<InspectionCreateModel>()
                         call.respond(inspectionController.addInspection(inspectionCreateModel))
-                    }
+                    })
                 }
-                route("/files") {
-                    post("/new") {
+            }
+            route("/files") {
+
+                post("/new") {
+
+                    runVerifed(firebaseAuth, call, {
+
                         val multipart = call.receiveMultipart()
                         var title = ""
                         var videoFile: File? = null
@@ -228,8 +249,10 @@ fun Application.main() {
                                 type = "photo",
                                 storageRef = uploadName
                         ))
-                    }
+
+                    })
                 }
             }
+        }
     }
 }
