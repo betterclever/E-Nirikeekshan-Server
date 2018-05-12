@@ -23,6 +23,19 @@ class UserController {
         }
     }*/
 
+    fun verifyUser(phone: String): Boolean {
+        try {
+            val phone = phone.substringAfter("+91").toLong()
+            return transaction {
+                val d = Users.select({ Users.id eq phone})
+                        .map { it }
+                return@transaction d.isNotEmpty()
+            }
+        } catch (exception: Exception) {
+            return false
+        }
+    }
+
     fun getLocations(): List<String> = transaction {
         Users.slice(Users.location)
                 .selectAll()

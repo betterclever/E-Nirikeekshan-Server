@@ -22,6 +22,8 @@ import io.ktor.content.PartData
 import io.ktor.content.forEachPart
 import io.ktor.features.*
 import io.ktor.gson.gson
+import io.ktor.http.Headers
+import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.request.receiveMultipart
 import io.ktor.response.respond
@@ -52,7 +54,6 @@ fun Application.main() {
 
     val serviceAccount = topLevelClass.classLoader
             .getResourceAsStream("e-nirikshan-firebase-adminsdk-qj7uv-8f4c1dee28.json")
-    //val serviceAccount = FileInputStream("e-nirikshan-firebase-adminsdk-qj7uv-8f4c1dee28.json")
 
     val options = FirebaseOptions.Builder()
             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
@@ -60,13 +61,23 @@ fun Application.main() {
             .build()
 
     FirebaseApp.initializeApp(options)
-
     val firebaseAuth = FirebaseAuth.getInstance()
-    //val idToken = ""
-    //val decodedToken = FirebaseAuth.getInstance().verifyIdTokenAsync(idToken).get()
-    //val uid = decodedToken.uid
 
-   install(Compression)
+    val userController = UserController()
+
+    fun verifyToken(headers: Headers) : Boolean {
+        val authToken = headers["Authorization"]
+        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
+
+        return try {
+            val phone = decodedToken.claims["phone_number"] as String
+            userController.verifyUser(phone)
+        } catch (exception: Exception) {
+            false
+        }
+    }
+
+    install(Compression)
         install(CORS) {
             anyHost()
         }
@@ -85,25 +96,21 @@ fun Application.main() {
         install(Routing) {
             route("/api") {
                 route("/users") {
-                    val userController = UserController()
                     get("/locations") {
-                        //val auth = call.request.headers["Authorization"]
-                        //println("auth: $auth")
+                        val auth = call.request.headers["Authorization"]
+                        println("auth: $auth")
+
                         call.respond(userController.getLocations())
                     }
                     get("/{location}/departments") {
-                        //val authToken = call.request.headers["Authorization"]
-
-                        //val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
-                        //val uid = decodedToken.uid
-                        //println(uid)
-
-                        val location = call.parameters["location"]
-                        if (location != null) {
-                            call.respond(userController.getDepartments(location))
-                        } else {
-                            call.respond(emptyArray<String>())
-                        }
+                        if(verifyToken(call.request.headers)) {
+                            val location = call.parameters["location"]
+                            if (location != null) {
+                                call.respond(userController.getDepartments(location))
+                            } else {
+                                call.respond(emptyArray<String>())
+                            }
+                        } else call.respond(HttpStatusCode(500, "Unauthorized access"), "Unauthorized")
                     }
                     get("/{location}/{department}/designations") {
                         val location = call.parameters["location"]
