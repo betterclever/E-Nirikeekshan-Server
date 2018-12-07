@@ -1,6 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.dao
 
 import `in`.indianrail.ncr.enireekshan.model.InspectionModel
+import `in`.indianrail.ncr.enireekshan.model.MediaItemsModel
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -10,10 +11,10 @@ object Inspections : IntIdTable() {
     val title = text("title")
     val status = text("status")
     val timestamp = long("timestamp")
-    val mediaRef = text("media").nullable()
     val urgent = bool("urgent")
-    val submittedBy = reference("submittedBy", Users)
-    val reportID = text("reportID")
+    val reportID = reference("reportID", Reports)
+    val seenByPCSO = bool("seenByPCSO")
+    val seenBySrDSO = bool("seenBySrDSO")
 }
 
 class Inspection(id: EntityID<Int>) : IntEntity(id) {
@@ -23,22 +24,25 @@ class Inspection(id: EntityID<Int>) : IntEntity(id) {
     var inspectionID by Inspections.id
     var status by Inspections.status
     var urgent by Inspections.urgent
-    val mediaRef by Inspections.mediaRef
     var reportID by Inspections.reportID
     var timestamp by Inspections.timestamp
+    val mediaItems by MediaItem referrersOn MediaItems.inspectionId
     val assignees by UserEntity via InspectionAssignees
-    var submittedBy by UserEntity referencedOn Inspections.submittedBy
+    var seenByPCSO by Inspections.seenByPCSO
+    var seenBySrDSO by Inspections.seenBySrDSO
 
     fun getInspectionModel() = InspectionModel(
             assignees = assignees.map { it.getUserModel() },
-            id = id.value,
-            mediaRef = mediaRef,
+            id = inspectionID.value,
             reportID = reportID,
             status = status,
-            submittedBy = submittedBy.getUserModel(),
             timestamp = timestamp,
             title = title,
-            urgent = urgent
+            urgent = urgent,
+            seenByPCSO = seenByPCSO,
+            seenBySrDSO = seenBySrDSO,
+            mediaItems = mediaItems.map{ MediaItemsModel(it.filePath) },
+            submittedBy = Report[reportID.value].submittedBy.getUserModel()
     )
 }
 

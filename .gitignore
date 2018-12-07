@@ -3,3 +3,6 @@ build/
 .out/*
 .idea/*
 .gradle/*
+src/main/resources/e-nirikshan-firebase-adminsdk-qj7uv-a17a5c4ee5.json
+src/main/resources/hikari.properties
+out/*

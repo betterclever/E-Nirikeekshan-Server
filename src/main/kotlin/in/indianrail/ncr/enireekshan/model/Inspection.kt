@@ -1,21 +1,24 @@
 package `in`.indianrail.ncr.enireekshan.model
 
-import com.sun.org.apache.xpath.internal.operations.Bool
+import org.jetbrains.exposed.dao.EntityID
+
 
 val STATUS_UNSEEN = "unseen"
-val STATUS_SEEN = "unseen"
+val STATUS_SEEN = "seen"
 val STATUS_COMPLIED = "complied"
 
 data class InspectionModel(
         val assignees: List<UserModel>,
         val id: Int,
-        val mediaRef: String?,
-        val reportID: String,
+        val reportID: EntityID<Int>,
         val status: String,
-        val submittedBy: UserModel,
         val timestamp: Long,
         val title: String,
-        val urgent: Boolean
+        val urgent: Boolean,
+        val seenByPCSO: Boolean,
+        val seenBySrDSO: Boolean,
+        val mediaItems: List<MediaItemsModel>,
+        val submittedBy: UserModel
 )
 
 data class AssigneeRole(
@@ -29,5 +32,6 @@ data class InspectionCreateModel(
         val submitterID: Long,
         val mediaRef: String?,
         val urgent: Boolean,
-        val assigneeRoles: List<AssigneeRole>
+        val assigneeRoles: List<AssigneeRole>,
+        val reportID: EntityID<Int>
 )

@@ -3,10 +3,7 @@ package `in`.indianrail.ncr.enireekshan.controller
 import `in`.indianrail.ncr.enireekshan.NotificationUtils
 import `in`.indianrail.ncr.enireekshan.currentTimeStamp
 import `in`.indianrail.ncr.enireekshan.dao.*
-import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
-import `in`.indianrail.ncr.enireekshan.model.InspectionModel
-import `in`.indianrail.ncr.enireekshan.model.MessageModel
-import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
+import `in`.indianrail.ncr.enireekshan.model.*
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -16,7 +13,7 @@ class InspectionController {
     val notificationUtils = NotificationUtils()
 
     fun getInspectionAssignedTo(userID: Long, page: Int = 1): List<InspectionModel> = transaction {
-        (Inspections innerJoin InspectionAssignees)
+        (Inspections innerJoin Reports)
                 .select { InspectionAssignees.userID eq userID }
                 .limit(10, (page - 1) * 10)
                 .map {
@@ -27,9 +24,8 @@ class InspectionController {
     //fun getInspectionAssignedTo(userID: Long, page: Int = 1) = emptyList<InspectionModel>()
 
     fun getInspectionsSubmittedBy(userID: Long, page: Int = 1): List<InspectionModel> = transaction {
-        val q = Inspections.select { Inspections.submittedBy eq userID }
+        val q = (Inspections innerJoin Reports).select { Reports.submittedBy eq userID }
                 .limit(10, (page - 1) * 10)
-
         val sql = q.prepareSQL(this)
         q.map {
             it.prepareInspectionModel()
@@ -54,10 +50,10 @@ class InspectionController {
             it[title] = inspectionModel.title
             it[status] = STATUS_UNSEEN
             it[urgent] = inspectionModel.urgent
-            it[reportID] = "abc"
-            it[mediaRef] = inspectionModel.mediaRef
+            it[reportID] = inspectionModel.reportID
             it[timestamp] = currentTimeStamp
-            it[submittedBy] = EntityID(inspectionModel.submitterID, Users)
+            it[seenByPCSO] = false
+            it[seenBySrDSO] = false
         }
         val recepients = mutableListOf<String>()
         inspectionModel.assigneeRoles.forEach {
@@ -117,13 +113,17 @@ class InspectionController {
 
     private fun ResultRow.prepareInspectionModel() = InspectionModel(
             id = this[Inspections.id].value,
-            mediaRef = this[Inspections.mediaRef],
             title = this[Inspections.title],
             urgent = this[Inspections.urgent],
             status = this[Inspections.status],
-            reportID = this[Inspections.reportID],
+            reportID = this[Reports.id],
             timestamp = this[Inspections.timestamp],
             assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
-            submittedBy = UserEntity[this[Inspections.submittedBy]].getUserModel()
+            submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
+            mediaItems = MediaItems.select { MediaItems.inspectionId eq this@prepareInspectionModel[Inspections.id].value }.map {
+                MediaItemsModel(it[MediaItems.filePath])
+            },
+            seenBySrDSO = this[Inspections.seenBySrDSO],
+            seenByPCSO = this[Inspections.seenByPCSO]
     )
 }
