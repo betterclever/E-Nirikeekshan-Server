@@ -1,9 +1,6 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
-import `in`.indianrail.ncr.enireekshan.dao.Inspections
-import `in`.indianrail.ncr.enireekshan.dao.Report
-import `in`.indianrail.ncr.enireekshan.dao.Reports
-import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.ReportModel
 import `in`.indianrail.ncr.enireekshan.model.ReportCreateModel
 import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
@@ -21,6 +18,7 @@ class ReportsController{
         val newReportID = Reports.insertAndGetId {
             it[submittedBy] = EntityID(report.submittedBy, Users)
         }
+        val inspectionIDList = ArrayList<Int>()
         report.inspections.forEach{ inspection ->
             val newInspectionID = Inspections.insertAndGetId {
                 it[title] = inspection.title
@@ -32,8 +30,15 @@ class ReportsController{
                 it[seenBySrDSO] = false
                 it[assignedToUser] = EntityID(inspection.assignedToUser, Users)
             }
+            inspection.mediaLinks.forEach{mediaLink ->
+                val newMediaID = MediaItems.insertAndGetId {
+                    it[inspectionId] = EntityID(newInspectionID.value, Inspections)
+                    it[filePath] = mediaLink
+                }
+            }
+            inspectionIDList.add(newInspectionID.value)
         }
-        newReportID.value
+        inspectionIDList
     }
 
     fun getReportsByID(id: Int) = transaction {

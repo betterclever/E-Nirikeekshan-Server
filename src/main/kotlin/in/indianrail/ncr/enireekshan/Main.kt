@@ -288,12 +288,12 @@ fun Application.main() {
 
                 val baseDir =File("/home/enireekshan/server-uploads")
                 get("/{name}") {
-                    //runVerifed(firebaseAuth, call, {
+                    runVerifed(firebaseAuth, call, {
                         val name = call.parameters["name"]
                         if (name != null) {
                             call.respondFile(baseDir, name)
                         }
-                    //})
+                    })
                 }
 
                 post("/new") {

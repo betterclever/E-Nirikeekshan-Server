@@ -34,6 +34,7 @@ data class InspectionCreateModel(
         val reportID: Int,
         val status: String,
         val timestamp: Long,
+        val mediaLinks: List<String>,
         val seenByPCSO: Boolean,
         val seenBySrDSO: Boolean
 )

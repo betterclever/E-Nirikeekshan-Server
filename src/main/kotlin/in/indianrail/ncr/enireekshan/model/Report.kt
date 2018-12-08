@@ -10,5 +10,5 @@ data class ReportModel(
 
 data class ReportCreateModel(
         val submittedBy: Long,
-        val inspections: List<InspectionModel>
+        val inspections: List<InspectionCreateModel>
 )
