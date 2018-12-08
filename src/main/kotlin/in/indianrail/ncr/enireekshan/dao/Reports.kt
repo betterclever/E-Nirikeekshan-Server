@@ -18,7 +18,7 @@ class Report(id: EntityID<Int>) : IntEntity(id) {
 
     fun getReportModel() = ReportModel(
             id = ReportID.value,
-            submittedBy = submittedBy.getUserModel()
+            submittedBy = submittedBy.phone.value
     )
 }
 

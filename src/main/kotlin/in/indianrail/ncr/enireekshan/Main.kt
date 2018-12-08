@@ -1,14 +1,13 @@
 package `in`.indianrail.ncr.enireekshan
 
 import `in`.indianrail.ncr.enireekshan.controller.InspectionController
+import `in`.indianrail.ncr.enireekshan.controller.ReportsController
 import `in`.indianrail.ncr.enireekshan.controller.UserController
 import `in`.indianrail.ncr.enireekshan.dao.InspectionAssignees
 import `in`.indianrail.ncr.enireekshan.dao.Inspections
 import `in`.indianrail.ncr.enireekshan.dao.Messages
 import `in`.indianrail.ncr.enireekshan.dao.Users
-import `in`.indianrail.ncr.enireekshan.model.FileInfo
-import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
-import `in`.indianrail.ncr.enireekshan.model.UserModel
+import `in`.indianrail.ncr.enireekshan.model.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -47,6 +46,7 @@ fun initDB() {
 
 val topLevelClass = object : Any() {}.javaClass.enclosingClass
 val userController = UserController()
+val reportsController = ReportsController()
 
 suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
 
@@ -332,6 +332,19 @@ fun Application.main() {
                                 storageRef = uploadName
                         ))
 
+                    }
+                }
+            }
+            route("/reports"){
+                get("/") {
+                    runVerifed(firebaseAuth, this.call) {
+                        call.respond(reportsController.getAllReports())
+                    }
+                }
+                post("/") {
+                    runVerifed(firebaseAuth, call) {
+                        val report = call.receive<ReportCreateModel>()
+                        call.respond(reportsController.addReport(report))
                     }
                 }
             }

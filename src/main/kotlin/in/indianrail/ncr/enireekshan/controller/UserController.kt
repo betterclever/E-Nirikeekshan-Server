@@ -49,7 +49,7 @@ class UserController {
         Users.slice(Users.department, Users.location)
                 .select({
                     (Users.location eq location) and
-                            (Users.assignable eq false)
+                            (Users.assignable eq true)
                 })
                 .withDistinct(true)
                 .map {
@@ -62,7 +62,7 @@ class UserController {
         Users.slice(Users.designation)
                 .select({
                     (Users.location eq location) and (Users.department eq department) and
-                            (Users.assignable eq false)
+                            (Users.assignable eq true)
                 })
                 .withDistinct(true)
                 .map {
@@ -113,7 +113,7 @@ class UserController {
     }
 
     fun addUser(user: UserModel): UserModel = transaction {
-        UserEntity.new(user.phone, {
+        UserEntity.new(user.phone) {
             user.let {
                 name = it.name
                 department = it.department
@@ -121,7 +121,7 @@ class UserController {
                 location = it.location
                 assignable = it.assignable
             }
-        }).getUserModel()
+        }.getUserModel()
     }
 
 }
