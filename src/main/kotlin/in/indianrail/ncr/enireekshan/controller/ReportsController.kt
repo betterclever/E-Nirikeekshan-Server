@@ -1,10 +1,9 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
 import `in`.indianrail.ncr.enireekshan.dao.*
-import `in`.indianrail.ncr.enireekshan.model.ReportModel
-import `in`.indianrail.ncr.enireekshan.model.ReportCreateModel
-import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
+import `in`.indianrail.ncr.enireekshan.model.*
 import com.google.cloud.storage.Acl
+import com.typesafe.config.ConfigException
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -42,21 +41,14 @@ class ReportsController{
     }
 
     fun getReportsByID(id: Int) = transaction {
-        val results = Reports.select { Reports.id eq id }
-                .map { it.prepareReportModel() }
-
-        if (results.isNotEmpty()) {
-            results[0]
-        } else null
+        val report = Report[id]
+        report.getReportModel()
     }
 
     fun getReportsByUser(id: Long) = transaction {
         Reports.select{Reports.submittedBy eq id}.map {
             it[Reports.id].value
-        }
+        }.map { Report[it].getReportModel() }
     }
-    private fun ResultRow.prepareReportModel() = ReportModel(
-            id = this[Reports.id].value,
-            submittedBy = this[Reports.submittedBy].value
-    )
+
 }
