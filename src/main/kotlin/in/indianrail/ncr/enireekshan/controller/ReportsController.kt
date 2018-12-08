@@ -1,10 +1,12 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
+import `in`.indianrail.ncr.enireekshan.dao.Inspections
 import `in`.indianrail.ncr.enireekshan.dao.Report
 import `in`.indianrail.ncr.enireekshan.dao.Reports
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.model.ReportModel
 import `in`.indianrail.ncr.enireekshan.model.ReportCreateModel
+import `in`.indianrail.ncr.enireekshan.model.STATUS_UNSEEN
 import com.google.cloud.storage.Acl
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
@@ -18,6 +20,18 @@ class ReportsController{
     fun addReport(report: ReportCreateModel) = transaction {
         val newReportID = Reports.insertAndGetId {
             it[submittedBy] = EntityID(report.submittedBy, Users)
+        }
+        report.inspections.forEach{ inspection ->
+            val newInspectionID = Inspections.insertAndGetId {
+                it[title] = inspection.title
+                it[status] = STATUS_UNSEEN
+                it[urgent] = inspection.urgent
+                it[reportID] = newReportID
+                it[timestamp] = inspection.timestamp
+                it[seenByPCSO] = false
+                it[seenBySrDSO] = false
+                it[assignedToUser] = EntityID(inspection.assignedToUser, Users)
+            }
         }
         newReportID.value
     }

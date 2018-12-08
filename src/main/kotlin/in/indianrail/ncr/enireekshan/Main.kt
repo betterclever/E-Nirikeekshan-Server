@@ -38,7 +38,7 @@ fun initDB() {
     Database.connect(ds)
 
     transaction {
-        createMissingTablesAndColumns(Users, Inspections, Messages, MediaItems)
+        create(Users, Inspections, Messages, MediaItems)
     }
 }
 

@@ -51,7 +51,7 @@ class InspectionController {
             it[status] = STATUS_UNSEEN
             it[urgent] = inspectionModel.urgent
             it[reportID] = EntityID(inspectionModel.reportID, Reports)
-            it[timestamp] = currentTimeStamp
+            it[timestamp] = inspectionModel.timestamp
             it[seenByPCSO] = false
             it[seenBySrDSO] = false
             it[assignedToUser] = EntityID(inspectionModel.assignedToUser, Users)
@@ -77,7 +77,7 @@ class InspectionController {
 //                "sentBy" to "${inspectionModel.submitterID}"
 //        ), recepients)
 
-        newInspectionID
+        newInspectionID.value
     }
 
     fun getInspectionByID(id: Int) = transaction {
