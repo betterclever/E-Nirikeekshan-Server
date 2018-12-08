@@ -99,6 +99,7 @@ class UserController {
             it[location] = user.location
             it[designation] = user.designation
             it[department] = user.department
+            it[assignable] = user.assignable
         }
     }
 

@@ -34,7 +34,7 @@ class Inspection(id: EntityID<Int>) : IntEntity(id) {
     fun getInspectionModel() = InspectionModel(
             assignees = assignees.map { it.getUserModel() },
             id = inspectionID.value,
-            reportID = reportID,
+            reportID = reportID.value,
             status = status,
             timestamp = timestamp,
             title = title,

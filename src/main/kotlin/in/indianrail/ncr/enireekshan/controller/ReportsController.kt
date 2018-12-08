@@ -21,4 +21,23 @@ class ReportsController{
         }
         newReportID.value
     }
+
+    fun getReportsByID(id: Int) = transaction {
+        val results = Reports.select { Reports.id eq id }
+                .map { it.prepareReportModel() }
+
+        if (results.isNotEmpty()) {
+            results[0]
+        } else null
+    }
+
+    fun getReportsByUser(id: Long) = transaction {
+        Reports.select{Reports.submittedBy eq id}.map {
+            it[Reports.id].value
+        }
+    }
+    private fun ResultRow.prepareReportModel() = ReportModel(
+            id = this[Reports.id].value,
+            submittedBy = this[Reports.submittedBy].value
+    )
 }

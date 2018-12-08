@@ -50,7 +50,7 @@ class InspectionController {
             it[title] = inspectionModel.title
             it[status] = STATUS_UNSEEN
             it[urgent] = inspectionModel.urgent
-            it[reportID] = inspectionModel.reportID
+            it[reportID] = EntityID(inspectionModel.reportID, Reports)
             it[timestamp] = currentTimeStamp
             it[seenByPCSO] = false
             it[seenBySrDSO] = false
@@ -116,7 +116,7 @@ class InspectionController {
             title = this[Inspections.title],
             urgent = this[Inspections.urgent],
             status = this[Inspections.status],
-            reportID = this[Reports.id],
+            reportID = this[Reports.id].value,
             timestamp = this[Inspections.timestamp],
             assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
             submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),

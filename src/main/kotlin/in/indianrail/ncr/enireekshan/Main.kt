@@ -347,6 +347,40 @@ fun Application.main() {
                         call.respond(reportsController.addReport(report))
                     }
                 }
+                get("/{id}"){
+                    runVerifed(firebaseAuth, call) {
+                        val idS = call.parameters["id"]
+                        if (idS != null) {
+                            val response = try {
+                                val id = idS.toInt()
+                                reportsController.getReportsByID(id)
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                null
+                            }
+                            if(response!=null) {
+                                call.respond(response)
+                            } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+                        }
+                    }
+                }
+                get("/getReportsByUser/{userId}"){
+                    runVerifed(firebaseAuth, call) {
+                        val uid = call.parameters["userId"]
+                        if (uid != null) {
+                            val response = try {
+                                val uid = uid.toLong()
+                                reportsController.getReportsByUser(uid)
+                            } catch (exception: Exception) {
+                                exception.printStackTrace()
+                                null
+                            }
+                            if(response!=null) {
+                                call.respond(response)
+                            } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+                        }
+                    }
+                }
             }
         }
     }
