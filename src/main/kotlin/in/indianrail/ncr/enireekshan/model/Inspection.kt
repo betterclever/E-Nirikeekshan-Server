@@ -8,7 +8,7 @@ val STATUS_SEEN = "seen"
 val STATUS_COMPLIED = "complied"
 
 data class InspectionModel(
-        val assignees: List<UserModel>,
+        val assignedToUser: Long,
         val id: Int,
         val reportID: Int,
         val status: String,
@@ -29,9 +29,11 @@ data class AssigneeRole(
 
 data class InspectionCreateModel(
         val title: String,
-        val submitterID: Long,
-        val mediaRef: String?,
         val urgent: Boolean,
-        val assigneeRoles: List<AssigneeRole>,
-        val reportID: Int
+        val assignedToUser: Long,
+        val reportID: Int,
+        val status: String,
+        val timestamp: Long,
+        val seenByPCSO: Boolean,
+        val seenBySrDSO: Boolean
 )

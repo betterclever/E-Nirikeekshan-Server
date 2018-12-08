@@ -54,27 +54,30 @@ class InspectionController {
             it[timestamp] = currentTimeStamp
             it[seenByPCSO] = false
             it[seenBySrDSO] = false
+            it[assignedToUser] = EntityID(inspectionModel.assignedToUser, Users)
         }
-        val recepients = mutableListOf<String>()
-        inspectionModel.assigneeRoles.forEach {
-            val res = Users.slice(Users.id, Users.fcmToken).select {
-                (Users.location eq it.location) and
-                        (Users.designation eq it.designation) and
-                        (Users.department eq it.department)
-            }
-            res.forEach { row ->
-                row[Users.fcmToken]?.let { recepients.add(it) }
-                InspectionAssignees.insert {
-                    it[inspectionID] = newInspectionID
-                    it[userID] = row[Users.id]
-                }
-            }
-        }
+//        val recepients = mutableListOf<String>()
+//        inspectionModel.assigneeRoles.forEach {
+//            val res = Users.slice(Users.id, Users.fcmToken).select {
+//                (Users.location eq it.location) and
+//                        (Users.designation eq it.designation) and
+//                        (Users.department eq it.department)
+//            }
+//            res.forEach { row ->
+//                row[Users.fcmToken]?.let { recepients.add(it) }
+//                InspectionAssignees.insert {
+//                    it[inspectionID] = newInspectionID
+//                    it[userID] = row[Users.id]
+//                }
+//            }
+//        }
         // Send a notification
-        notificationUtils.sendNotification(inspectionModel.title, mapOf(
-                "type" to "New Assignment",
-                "sentBy" to "${inspectionModel.submitterID}"
-        ), recepients)
+//        notificationUtils.sendNotification(inspectionModel.title, mapOf(
+//                "type" to "New Assignment",
+//                "sentBy" to "${inspectionModel.submitterID}"
+//        ), recepients)
+
+        newInspectionID
     }
 
     fun getInspectionByID(id: Int) = transaction {
@@ -118,12 +121,13 @@ class InspectionController {
             status = this[Inspections.status],
             reportID = this[Reports.id].value,
             timestamp = this[Inspections.timestamp],
-            assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
+            //assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
             submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
             mediaItems = MediaItems.select { MediaItems.inspectionId eq this@prepareInspectionModel[Inspections.id].value }.map {
                 MediaItemsModel(it[MediaItems.filePath])
             },
             seenBySrDSO = this[Inspections.seenBySrDSO],
-            seenByPCSO = this[Inspections.seenByPCSO]
+            seenByPCSO = this[Inspections.seenByPCSO],
+            assignedToUser = this[Inspections.assignedToUser].value
     )
 }

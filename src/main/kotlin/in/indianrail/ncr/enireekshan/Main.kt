@@ -3,10 +3,7 @@ package `in`.indianrail.ncr.enireekshan
 import `in`.indianrail.ncr.enireekshan.controller.InspectionController
 import `in`.indianrail.ncr.enireekshan.controller.ReportsController
 import `in`.indianrail.ncr.enireekshan.controller.UserController
-import `in`.indianrail.ncr.enireekshan.dao.InspectionAssignees
-import `in`.indianrail.ncr.enireekshan.dao.Inspections
-import `in`.indianrail.ncr.enireekshan.dao.Messages
-import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.*
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
@@ -30,6 +27,7 @@ import io.ktor.routing.*
 import io.ktor.util.error
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
+import org.jetbrains.exposed.sql.SchemaUtils.createMissingTablesAndColumns
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.io.File
 import java.text.DateFormat
@@ -40,7 +38,7 @@ fun initDB() {
     Database.connect(ds)
 
     transaction {
-        create(Users, Inspections, InspectionAssignees, Messages)
+        createMissingTablesAndColumns(Users, Inspections, Messages, MediaItems)
     }
 }
 
