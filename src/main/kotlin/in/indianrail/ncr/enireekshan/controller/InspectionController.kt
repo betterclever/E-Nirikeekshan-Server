@@ -50,6 +50,7 @@ class InspectionController {
                 "sentByDepartment" to sentByUser[0].department,
                 "sentByLocation" to sentByUser[0].location
         ), assignedUserTokenList)
+        newMessgaeID.value
     }
 
     fun getMessages(inspectionID: Int): List<MessageModel> = transaction {
