@@ -10,6 +10,7 @@ import org.jetbrains.exposed.dao.IntIdTable
 
 object Reports : IntIdTable() {
     val submittedBy = reference("submittedBy", Users)
+    val timestamp = long("timestamp")
 }
 
 class Report(id: EntityID<Int>) : IntEntity(id) {
@@ -18,11 +19,13 @@ class Report(id: EntityID<Int>) : IntEntity(id) {
     var ReportID by Reports.id
     var submittedBy by UserEntity referencedOn Reports.submittedBy
     val inspections by Inspection referrersOn Inspections.reportID
+    val timestamp by Reports.timestamp
 
     fun getReportModel() = ReportModel(
             id = ReportID.value,
             submittedBy = submittedBy.phone.value,
-            inspections = inspections.map{ it.getInspectionModel()}
+            inspections = inspections.map{ it.getInspectionModel()},
+            timestamp =  timestamp
     )
 }
 

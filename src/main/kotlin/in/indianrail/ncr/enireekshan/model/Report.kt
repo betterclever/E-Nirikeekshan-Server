@@ -24,7 +24,8 @@ import java.io.File
 data class ReportModel(
         val id: Int,
         val submittedBy: Long,
-        val inspections: List<InspectionModel>
+        val inspections: List<InspectionModel>,
+        val timestamp: Long
 ) : TableWriterInterface{
     override fun writeReportToPDF() : String {
         val filename = "reports-$id.pdf"
@@ -81,5 +82,6 @@ data class ReportModel(
 
 data class ReportCreateModel(
         val submittedBy: Long,
+        val timestamp: Long,
         val inspections: List<InspectionCreateModel>
 )

@@ -19,6 +19,7 @@ class ReportsController{
     fun addReport(report: ReportCreateModel) = transaction {
         val newReportID = Reports.insertAndGetId {
             it[submittedBy] = EntityID(report.submittedBy, Users)
+            it[timestamp] = report.timestamp
         }
         val inspectionIDList = ArrayList<Int>()
         val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
