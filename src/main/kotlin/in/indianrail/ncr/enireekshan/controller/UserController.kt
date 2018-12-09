@@ -1,14 +1,13 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
-import `in`.indianrail.ncr.enireekshan.dao.UserEntity
-import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.dao.*
+import `in`.indianrail.ncr.enireekshan.model.InspectionModel
+import `in`.indianrail.ncr.enireekshan.model.MediaItemsModel
 import `in`.indianrail.ncr.enireekshan.model.UserModel
 import com.google.cloud.storage.Acl
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 
 class UserController {
 
@@ -82,7 +81,8 @@ class UserController {
                         department = it.getString(2),
                         designation = it.getString(3),
                         location = it.getString(4),
-                        assignable = it.getBoolean(7)
+                        assignable = it.getBoolean(7),
+                        fcmtoken = null
                 ))
             }
             return@exec result
@@ -107,6 +107,10 @@ class UserController {
         UserEntity.all().map { it.getUserModel() }
     }
 
+    fun getAllVerifiedUsers(): List<UserModel> = transaction {
+        Users.select(Users.assignable eq true).map { it.prepareUserModel() }
+    }
+
     fun updateFCMToken(userID: Long, fcmToken: String) = transaction {
         Users.update({ Users.id eq userID }) {
             it[Users.fcmToken] = fcmToken
@@ -124,5 +128,4 @@ class UserController {
             }
         }.getUserModel()
     }
-
 }

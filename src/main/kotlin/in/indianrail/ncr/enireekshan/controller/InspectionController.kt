@@ -32,12 +32,24 @@ class InspectionController {
         }
     }
 
-    fun addMessage(inspectionID: Int, messageString: String, userID: Long) = transaction {
+    fun addMessage(messageModel: MessageCreateModel, userID: Long) = transaction {
         val newMessgaeID = Messages.insertAndGetId {
-            it[message] = messageString
-            it[inspection] = EntityID(inspectionID, Inspections)
+            it[message] = messageModel.message
+            it[inspection] = EntityID(messageModel.inspectionID, Inspections)
             it[sender] = EntityID(userID, Users)
+            it[timestamp] = messageModel.timestamp
         }
+        val sentByUser =  Users.select{Users.id eq userID}.map{
+            it.prepareUserModel()
+        }
+        val assignedUserTokenList =  (Inspections innerJoin Users).select{(Inspections.id eq messageModel.inspectionID)}.map{
+            it[Users.fcmToken]
+        }
+        notificationUtils.sendNotification(messageModel.message, mapOf(
+                "sentBy" to sentByUser[0].name,
+                "sentByDepartment" to sentByUser[0].department,
+                "sentByLocation" to sentByUser[0].location
+        ), assignedUserTokenList)
     }
 
     fun getMessages(inspectionID: Int): List<MessageModel> = transaction {
@@ -71,12 +83,6 @@ class InspectionController {
 //                }
 //            }
 //        }
-        // Send a notification
-//        notificationUtils.sendNotification(inspectionModel.title, mapOf(
-//                "type" to "New Assignment",
-//                "sentBy" to "${inspectionModel.submitterID}"
-//        ), recepients)
-
         newInspectionID.value
     }
 
@@ -97,6 +103,15 @@ class InspectionController {
             }) {
                 it[Inspections.status] = status
             }
+            val assignedUserTokenList =  (Inspections innerJoin Users).select{(Inspections.id eq id)}.map{
+                it[Users.fcmToken]
+            }
+            val assignedInspection =  (Inspections).select{(Inspections.id eq id)}.map{
+                it[Inspections.title]
+            }
+
+            notificationUtils.sendNotification("Status Update: " + assignedInspection[0], mapOf(
+            ), assignedUserTokenList)
         }
     }
 
@@ -111,7 +126,8 @@ class InspectionController {
     private fun ResultRow.prepareMessgaeModel() = MessageModel(
             message = this[Messages.message],
             sender = UserEntity[this[Messages.sender]].getUserModel(),
-            inspectionID = this[Messages.inspection].value
+            inspectionID = this[Messages.inspection].value,
+            timestamp = this[Messages.timestamp]
     )
 
     private fun ResultRow.prepareInspectionModel() = InspectionModel(
@@ -130,4 +146,16 @@ class InspectionController {
             seenByPCSO = this[Inspections.seenByPCSO],
             assignedToUser = this[Inspections.assignedToUser].value
     )
+
+
 }
+
+fun ResultRow.prepareUserModel() = UserModel(
+        phone = this[Users.id].value,
+        name = this[Users.name],
+        designation = this[Users.designation],
+        department = this[Users.department],
+        location = this[Users.location],
+        assignable = this[Users.assignable],
+        fcmtoken = this[Users.fcmToken]
+)

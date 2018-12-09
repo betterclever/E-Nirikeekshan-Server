@@ -6,5 +6,6 @@ data class UserModel(
         val designation: String,
         val department: String,
         val location: String,
-        val assignable: Boolean
+        val assignable: Boolean,
+        val fcmtoken: String?
 )

@@ -6,10 +6,11 @@ import com.google.firebase.messaging.Message
 class NotificationUtils {
     val messagingInstance = FirebaseMessaging.getInstance()
 
-    fun sendNotification(messageTitle: String, messageData: Map<String, String>, recipients: List<String>) {
+    fun sendNotification(messageTitle: String, messageData: Map<String, String>, recipients: List<String?>) {
 
         val messages = recipients.map { Message.builder()
                 .putAllData(messageData)
+                .putData("title",messageTitle)
                 .setToken(it)
                 .build()
         }

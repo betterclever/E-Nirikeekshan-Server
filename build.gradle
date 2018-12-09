@@ -32,6 +32,9 @@ dependencies {
     compile "io.ktor:ktor-gson:$ktor_version"
     compile "io.ktor:ktor-gson:$ktor_version"
     compile "com.google.firebase:firebase-admin:6.6.0"
+
+    compile 'com.github.dhorions:boxable:1.5'
+    
     compile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
     compile group: 'com.zaxxer', name: 'HikariCP', version: '2.7.4'
     compile "ch.qos.logback:logback-classic:1.2.1"

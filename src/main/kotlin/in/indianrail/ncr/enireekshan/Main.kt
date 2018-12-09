@@ -40,7 +40,7 @@ fun initDB() {
     Database.connect(ds)
 
     transaction {
-        create(Users, Inspections, Messages, MediaItems)
+        createMissingTablesAndColumns(Users, Inspections, Messages, MediaItems)
     }
 }
 
@@ -49,8 +49,6 @@ val userController = UserController()
 val reportsController = ReportsController()
 
 suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
-
-    block(1234567890)
     /*try {
         val authToken = call.request.headers["Authorization"]
         val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
@@ -61,6 +59,7 @@ suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall,
         exception.printStackTrace()
         call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
     }*/
+    block(1234567890)
 }
 
 fun Application.main() {
@@ -149,6 +148,11 @@ fun Application.main() {
                 get("/") {
                     runVerifed(firebaseAuth, call) {
                         call.respond(userController.getAllUsers())
+                    }
+                }
+                get("/assignable"){
+                    runVerifed(firebaseAuth, call) {
+                        call.respond(userController.getAllVerifiedUsers())
                     }
                 }
                 post("/") {
@@ -256,11 +260,11 @@ fun Application.main() {
                 post("/{id}/messages") {
                     runVerifed(firebaseAuth, call) {
                         val idS = call.parameters["id"]
-                        val message = call.receive<String>()
+                        val message = call.receive<MessageCreateModel>()
                         if(idS!=null) {
                             try {
                                 val id = idS.toInt()
-                                call.respond(inspectionController.addMessage(id, message, it))
+                                call.respond(inspectionController.addMessage(message, it))
                             } catch (expection: Exception) {
                                 expection.printStackTrace()
                                 call.respond(HttpStatusCode(404, "Not Found"), "Server Error")

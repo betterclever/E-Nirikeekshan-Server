@@ -34,7 +34,8 @@ class UserEntity(phone: EntityID<Long>) : Entity<Long>(phone) {
             location = location,
             designation = designation,
             department = department,
-            assignable = assignable
+            assignable = assignable,
+            fcmtoken = fcmToken
     )
 }
 
