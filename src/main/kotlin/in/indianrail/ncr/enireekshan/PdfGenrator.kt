@@ -1,5 +1,6 @@
 package `in`.indianrail.ncr.enireekshan
 
+import `in`.indianrail.ncr.enireekshan.routes.uploadDir
 import be.quodlibet.boxable.datatable.DataTable
 import be.quodlibet.boxable.BaseTable
 import be.quodlibet.boxable.Cell
@@ -23,7 +24,8 @@ import org.jsoup.Connection
 import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
 
 class PdfGenrator {
-    fun getPDF(): String{
+    val baseDir = File("/home/enireekshan/server-uploads")
+    fun getPDF(filenme: String,startWithString: String, header_map: LinkedHashMap<String, String>, content: MutableList<MutableList<String?>>): String{
         val myPage = PDPage(PDRectangle.A4)
         val mainDocument = PDDocument()
         val contentStream = PDPageContentStream(mainDocument, myPage)
@@ -32,7 +34,7 @@ class PdfGenrator {
         val titleFontSize = 10.0f
         val submittedBy = "ABC"
         val yposition = 700.00f
-        val startWithString = "Details of the Report submitted by " + submittedBy
+//        val startWithString = "Details of the Report submitted by " + submittedBy
         PDStreamUtils.write(contentStream, startWithString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
         mainDocument.addPage(myPage)
         val yStart = myPage.artBox.upperRightY * 0.80f
@@ -41,12 +43,12 @@ class PdfGenrator {
         val tableWidth = myPage.mediaBox.width * 0.9f
         val margin = myPage.mediaBox.width * 0.05f
         val dataTable = BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, mainDocument, myPage, true, true)
-        val header_map = linkedMapOf(
-                "header1" to "10",
-                "header2" to "10",
-                "header3" to "30",
-                "header4" to "50"
-        )
+//        val header_map = linkedMapOf(
+//                "header1" to "10",
+//                "header2" to "10",
+//                "header3" to "30",
+//                "header4" to "50"
+//        )
         val cellWidthList = mutableListOf<Float>()
         val headerRow = dataTable.createRow(15f)
         for ((k, v) in header_map) {
@@ -56,9 +58,9 @@ class PdfGenrator {
         }
         dataTable.addHeaderRow(headerRow)
 
-        var content = MutableList(100) {
-            mutableListOf("Data $it", "Some Value", "abcd", "abcj")
-        }
+//        var content = MutableList(100) {
+//            mutableListOf("Data $it", "Some Value", "abcd", "abcj")
+//        }
 
         content.forEach {
             val row = dataTable.createRow(10f)
@@ -68,7 +70,7 @@ class PdfGenrator {
         }
         dataTable.draw()
         contentStream.close()
-        val file = File("test.pdf")
+        val file = File(uploadDir, filenme)
         Files.createParentDirs(file)
         println("Sample file saved at : " + file.getAbsolutePath())
         mainDocument.save(file)
