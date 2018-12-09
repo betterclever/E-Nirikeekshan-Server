@@ -32,24 +32,38 @@ class InspectionController {
         }
     }
 
-    fun addMessage(messageModel: MessageCreateModel, userID: Long) = transaction {
+    fun addMessage(messageModel: MessageCreateModel, senderID: Long) = transaction {
         val newMessgaeID = Messages.insertAndGetId {
             it[message] = messageModel.message
             it[inspection] = EntityID(messageModel.inspectionID, Inspections)
-            it[sender] = EntityID(userID, Users)
+            it[sender] = EntityID(senderID, Users)
             it[timestamp] = messageModel.timestamp
         }
-        val sentByUser =  Users.select{Users.id eq userID}.map{
+        val sentByUser =  Users.select{Users.id eq senderID}.map{
             it.prepareUserModel()
         }
-        val assignedUserTokenList =  (Inspections innerJoin Users).select{(Inspections.id eq messageModel.inspectionID)}.map{
-            it[Users.fcmToken]
+        val userAssignedForInspection = Inspection[messageModel.inspectionID].assignedToUser.value
+        val inspectionCreatedByUser = (Inspections innerJoin Reports).select { Inspections.id eq  messageModel.inspectionID}.map{
+            it[Reports.submittedBy].value
+        }[0]
+        println("User1 $userAssignedForInspection\nUser2: $inspectionCreatedByUser\nSender: " + sentByUser[0].phone)
+        var assignedUserTokenList = mutableListOf<String?>()
+        if(sentByUser[0].phone == userAssignedForInspection){
+            println("FIRST PASSED")
+            assignedUserTokenList = mutableListOf(UserEntity[userAssignedForInspection].fcmToken)
+
+        } else{
+            println("SECOND PASSED")
+            assignedUserTokenList = mutableListOf(UserEntity[inspectionCreatedByUser].fcmToken)
         }
-        notificationUtils.sendNotification(messageModel.message, mapOf(
-                "sentBy" to sentByUser[0].name,
-                "sentByDepartment" to sentByUser[0].department,
-                "sentByLocation" to sentByUser[0].location
-        ), assignedUserTokenList)
+        println("USER TOKEN LIST: $assignedUserTokenList")
+        if(assignedUserTokenList[0] != null) {
+            notificationUtils.sendNotification(messageModel.message, mapOf(
+                    "sentBy" to sentByUser[0].name,
+                    "sentByDepartment" to sentByUser[0].department,
+                    "sentByLocation" to sentByUser[0].location
+            ), assignedUserTokenList)
+        }
         newMessgaeID.value
     }
 

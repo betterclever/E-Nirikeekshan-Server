@@ -24,7 +24,7 @@ class Report(id: EntityID<Int>) : IntEntity(id) {
     fun getReportModel() = ReportModel(
             id = ReportID.value,
             submittedBy = submittedBy.phone.value,
-            inspections = inspections.map{ it.getInspectionModel()},
+            inspections = inspections.map{ it.getInspectionModel() },
             timestamp =  timestamp
     )
 }
