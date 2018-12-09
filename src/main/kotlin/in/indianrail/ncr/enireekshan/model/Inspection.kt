@@ -53,7 +53,7 @@ data class InspectionModel(
         row.createCell(marginList[2], assignedToUserName[0])
         row.createCell(marginList[3], getDateTime(timestamp))
         row.createCell(marginList[4], status)
-        row.createCell(marginList[5], urgent.toString())
+        row.createCell(marginList[5], if (urgent) "YES" else "NO")
         var numberofImages = 0
         mediaItems.forEach {listItem->
             if (listItem.filepath.split(".").last() in setOf("jpg", "jpeg", "png", "bmp", "bpg")) numberofImages+=1
@@ -76,7 +76,6 @@ data class InspectionModel(
                 }
             }
         }
-
         return dataTable
     }
 

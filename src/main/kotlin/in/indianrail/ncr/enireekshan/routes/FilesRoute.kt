@@ -4,7 +4,6 @@ import `in`.indianrail.ncr.enireekshan.model.FileInfo
 import `in`.indianrail.ncr.enireekshan.runVerifed
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.call
-import io.ktor.application.log
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
@@ -57,11 +56,7 @@ fun Route.files(firebaseAuth: FirebaseAuth){
                 part.dispose()
             }
 
-            call.respond(FileInfo(
-                    type = "photo",
-                    storageRef = uploadName
-            ))
-
+            call.respond(uploadName)
         }
     }
 }

@@ -53,8 +53,7 @@ class ReportsController{
             }
             inspectionIDList.add(newInspectionID.value)
         }
-
-        inspectionIDList
+        Report.get(newReportID)
     }
 
     fun getReportsByID(id: Int) = transaction {

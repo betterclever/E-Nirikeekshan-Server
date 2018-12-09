@@ -66,6 +66,14 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
         }
     }
 
+    post("/new") {
+        runVerifed(firebaseAuth, call) {
+            val inspectionCreateModel = call.receive<InspectionCreateModel>()
+            println(inspectionCreateModel)
+            call.respond(inspectionController.addInspection(inspectionCreateModel))
+        }
+    }
+
     post("/{id}/messages") {
         runVerifed(firebaseAuth, call) {
             val idS = call.parameters["id"]
@@ -111,15 +119,6 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
                 }
                 call.respond(response)
             }
-        }
-    }
-
-
-    post("/new") {
-        runVerifed(firebaseAuth, call) {
-            val inspectionCreateModel = call.receive<InspectionCreateModel>()
-            println(inspectionCreateModel)
-            call.respond(inspectionController.addInspection(inspectionCreateModel))
         }
     }
 }
