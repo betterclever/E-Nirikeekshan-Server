@@ -49,8 +49,7 @@ fun Route.files(firebaseAuth: FirebaseAuth){
                         val ext = File(part.originalFileName).extension
                         uploadName = "upload-${System.currentTimeMillis()}-" +
                                 "${part.originalFileName!!.hashCode()}.$ext"
-                        val file = File(uploadDir, "upload-${System.currentTimeMillis()}-" +
-                                "${part.originalFileName!!.hashCode()}.$ext")
+                        val file = File(uploadDir, uploadName)
                         part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyTo(it) } }
                         videoFile = file
                     }

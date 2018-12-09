@@ -120,10 +120,18 @@ fun Application.main() {
 //    }
     install(Routing) {
         route("/api") {
-            users(firebaseAuth)
-            inspections(firebaseAuth)
-            files(firebaseAuth)
-            reports(firebaseAuth)
+            route("/users") {
+                users(firebaseAuth)
+            }
+            route("/inspections") {
+                inspections(firebaseAuth)
+            }
+            route("/files") {
+                files(firebaseAuth)
+            }
+            route("reports") {
+                reports(firebaseAuth)
+            }
         }
     }
 }
