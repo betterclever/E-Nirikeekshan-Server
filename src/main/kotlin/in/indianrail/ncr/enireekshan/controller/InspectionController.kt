@@ -46,14 +46,11 @@ class InspectionController {
         val inspectionCreatedByUser = (Inspections innerJoin Reports).select { Inspections.id eq  messageModel.inspectionID}.map{
             it[Reports.submittedBy].value
         }[0]
-        println("User1 $userAssignedForInspection\nUser2: $inspectionCreatedByUser\nSender: " + sentByUser[0].phone)
         var assignedUserTokenList = mutableListOf<String?>()
         if(sentByUser[0].phone == userAssignedForInspection){
-            println("FIRST PASSED")
             assignedUserTokenList = mutableListOf(UserEntity[userAssignedForInspection].fcmToken)
 
         } else{
-            println("SECOND PASSED")
             assignedUserTokenList = mutableListOf(UserEntity[inspectionCreatedByUser].fcmToken)
         }
         println("USER TOKEN LIST: $assignedUserTokenList")
