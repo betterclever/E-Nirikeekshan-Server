@@ -64,50 +64,7 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
                     null
                 }
                 if(response!=null) {
-                    val filename = "reports-" + response.id + ".pdf"
-                    val submitterID = response.submittedBy
-                    val submitterModel = transaction {
-                        Users.select { Users.id eq submitterID }.map { usr ->
-                            usr.prepareUserModel()
-                        }
-                    }
-                    val submitterName = submitterModel[0].name
-                    val submitterDesignation = submitterModel[0].designation
-                    val submitterLocation = submitterModel[0].location
-                    val preTableString = "Report submitted by $submitterName, $submitterDesignation, $submitterLocation"
-                    val header_map = linkedMapOf(
-                            "Sl." to "5",
-                            "Title" to "30",
-                            "Assigned To" to "14",
-                            "Date" to "10",
-                            "Status" to "8",
-                            "Urgent" to "8",
-                            "Images" to "25"
-                    )
-                    val assignedUserIdList = response.inspections.map {
-                        it.assignedToUser
-                    }
-                    val assignedUserMap = transaction {
-                        Users.select { Users.id inList assignedUserIdList }.map {
-                            it[Users.id].value to it[Users.name]
-                        }.toMap()
-                    }
-                    val inspections = response.inspections
-                    var content = MutableList(response.inspections.size) {
-                        val fileList = inspections[it].mediaItems.map{media->
-                            media
-                        }
-                        mutableListOf("$it"
-                                , inspections[it].title
-                                , assignedUserMap[inspections[it].assignedToUser.toLong()]
-                                , getDateTime(inspections[it].timestamp)
-                                , inspections[it].status
-                                , inspections[it].urgent.toString()
-                                , fileList)
-                    }
-                    println("CONTENT SIZE:" + content.size)
-                    val filePath = pdfGenerator.getPDF(filename, preTableString, header_map, content)
-                    println(filePath)
+                    val filePath = response.writeReportToPDF()
                     call.respondFile(File(filePath))
                 } else
                     call.respond(HttpStatusCode(404, "Not Found"), "Server Error")

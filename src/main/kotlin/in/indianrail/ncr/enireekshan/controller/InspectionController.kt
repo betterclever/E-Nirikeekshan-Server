@@ -54,7 +54,7 @@ class InspectionController {
 
     fun getMessages(inspectionID: Int): List<MessageModel> = transaction {
         Messages.select { Messages.inspection eq inspectionID }
-                .map { it.prepareMessgaeModel() }
+                .map { it.prepareMessageModel() }
     }
 
     fun addInspection(inspectionModel: InspectionCreateModel) = transaction {
@@ -87,7 +87,7 @@ class InspectionController {
     }
 
     fun getInspectionByID(id: Int) = transaction {
-        val results = Inspections.select { Inspections.id eq id }
+        val results = (Inspections innerJoin Users).select { Inspections.id eq id }
                 .map { it.prepareInspectionModel() }
 
         if (results.isNotEmpty()) {
@@ -123,7 +123,7 @@ class InspectionController {
                 }
     }
 
-    private fun ResultRow.prepareMessgaeModel() = MessageModel(
+    private fun ResultRow.prepareMessageModel() = MessageModel(
             message = this[Messages.message],
             sender = UserEntity[this[Messages.sender]].getUserModel(),
             inspectionID = this[Messages.inspection].value,
