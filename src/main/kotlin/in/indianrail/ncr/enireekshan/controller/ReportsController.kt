@@ -13,7 +13,9 @@ val notificationUtils = NotificationUtils()
 
 class ReportsController{
     fun getAllReports(): List<ReportModel> = transaction {
-        Report.all().map { it.getReportModel() }
+        Reports.selectAll().orderBy(Reports.timestamp, isAsc = false).map {
+            it.prepareReportModel()
+        }
     }
 
     fun addReport(report: ReportCreateModel) = transaction {
@@ -67,4 +69,12 @@ class ReportsController{
             it[Reports.id].value
         }.map { Report[it].getReportModel() }
     }
+    private fun ResultRow.prepareReportModel() = ReportModel(
+            id = this[Reports.id].value,
+            submittedBy = this[Reports.submittedBy].value,
+            timestamp = this[Reports.timestamp],
+            inspections = (Inspections innerJoin Reports).select { Inspections.reportID eq this@prepareReportModel[Reports.id]}.map{
+                it.prepareInspectionModel()
+            }
+    )
 }

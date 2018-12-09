@@ -131,25 +131,24 @@ class InspectionController {
             timestamp = this[Messages.timestamp]
     )
 
-    private fun ResultRow.prepareInspectionModel() = InspectionModel(
-            id = this[Inspections.id].value,
-            title = this[Inspections.title],
-            urgent = this[Inspections.urgent],
-            status = this[Inspections.status],
-            reportID = this[Reports.id].value,
-            timestamp = this[Inspections.timestamp],
-            //assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
-            submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
-            mediaItems = MediaItems.select { MediaItems.inspectionId eq this@prepareInspectionModel[Inspections.id].value }.map {
-                MediaItemsModel(it[MediaItems.filePath])
-            },
-            seenBySrDSO = this[Inspections.seenBySrDSO],
-            seenByPCSO = this[Inspections.seenByPCSO],
-            assignedToUser = this[Inspections.assignedToUser].value
-    )
-
-
 }
+
+fun ResultRow.prepareInspectionModel() = InspectionModel(
+        id = this[Inspections.id].value,
+        title = this[Inspections.title],
+        urgent = this[Inspections.urgent],
+        status = this[Inspections.status],
+        reportID = this[Reports.id].value,
+        timestamp = this[Inspections.timestamp],
+        //assignees = Inspection[this[Inspections.id]].assignees.map(UserEntity::getUserModel),
+        submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
+        mediaItems = MediaItems.select { MediaItems.inspectionId eq this@prepareInspectionModel[Inspections.id].value }.map {
+            MediaItemsModel(it[MediaItems.filePath])
+        },
+        seenBySrDSO = this[Inspections.seenBySrDSO],
+        seenByPCSO = this[Inspections.seenByPCSO],
+        assignedToUser = this[Inspections.assignedToUser].value
+)
 
 fun ResultRow.prepareUserModel() = UserModel(
         phone = this[Users.id].value,

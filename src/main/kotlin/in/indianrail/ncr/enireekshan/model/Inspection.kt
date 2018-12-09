@@ -17,7 +17,9 @@ import javax.imageio.ImageIO
 val STATUS_UNSEEN = "unseen"
 val STATUS_SEEN = "seen"
 val STATUS_COMPLIED = "complied"
-
+val baseDir = File("/home/enireekshan/server-uploads")
+val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
+val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
 data class InspectionModel(
         val assignedToUser: Long,
         val id: Int,
@@ -31,9 +33,6 @@ data class InspectionModel(
         val mediaItems: List<MediaItemsModel>,
         val submittedBy: UserModel
 ) : TableWriterInterface{
-    val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
-    val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
-    val baseDir = File("/home/enireekshan/server-uploads")
     override fun writeHeaderToPDF(dataTable: BaseTable) : BaseTable{
         val headerRow = dataTable.createRow(15f)
         headerList.forEachIndexed { index, s ->
@@ -44,6 +43,9 @@ data class InspectionModel(
         return dataTable
     }
     override fun writeTableToPDF(dataTable: BaseTable, index : Int) : BaseTable{
+        val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
+        val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
+
         val assignedToUserName = transaction { Users.select { Users.id eq assignedToUser }.map{
             it[Users.name]
         } }
