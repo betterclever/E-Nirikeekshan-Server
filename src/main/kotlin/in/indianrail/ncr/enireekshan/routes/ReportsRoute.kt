@@ -94,13 +94,16 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
                     }
                     val inspections = response.inspections
                     var content = MutableList(response.inspections.size) {
+                        val fileList = inspections[it].mediaItems.map{media->
+                            media
+                        }
                         mutableListOf("$it"
                                 , inspections[it].title
                                 , assignedUserMap[inspections[it].assignedToUser.toLong()]
                                 , getDateTime(inspections[it].timestamp)
                                 , inspections[it].status
                                 , inspections[it].urgent.toString()
-                                , "Images")
+                                , fileList)
                     }
                     println("CONTENT SIZE:" + content.size)
                     val filePath = pdfGenerator.getPDF(filename, preTableString, header_map, content)
@@ -132,7 +135,7 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
 
 fun getDateTime(s: Long): String? {
     return try {
-        val sdf = SimpleDateFormat("MM/dd/yyyy")
+        val sdf = SimpleDateFormat("MM/dd/yyyy HH:mm")
         val netDate = Date(s)
         sdf.format(netDate)
     } catch (e: Exception) {

@@ -1,31 +1,26 @@
 package `in`.indianrail.ncr.enireekshan
 
+import `in`.indianrail.ncr.enireekshan.model.MediaItemsModel
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
-import be.quodlibet.boxable.datatable.DataTable
 import be.quodlibet.boxable.BaseTable
-import be.quodlibet.boxable.Cell
-import be.quodlibet.boxable.Row
+import be.quodlibet.boxable.image.Image
 import be.quodlibet.boxable.utils.PDStreamUtils
 import com.google.common.io.Files
-import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.common.PDRectangle
-import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType1Font
+import org.jetbrains.exposed.sql.exposedLogger
 import java.awt.Color
 import java.io.File
-import java.util.Arrays
-import java.util.ArrayList
-import java.util.Arrays.asList
-import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
-import org.jsoup.Connection
-import com.sun.xml.internal.fastinfoset.alphabet.BuiltInRestrictedAlphabets.table
+import java.util.*
+import javax.imageio.IIOException
+import javax.imageio.ImageIO
 
 class PdfGenrator {
     val baseDir = File("/home/enireekshan/server-uploads")
-    fun getPDF(filenme: String,startWithString: String, header_map: LinkedHashMap<String, String>, content: MutableList<MutableList<String?>>): String{
+    fun getPDF(filenme: String,startWithString: String, header_map: LinkedHashMap<String, String>, content: MutableList<MutableList<Any?>>): String{
         val myPage = PDPage(PDRectangle.A4)
         val mainDocument = PDDocument()
         val contentStream = PDPageContentStream(mainDocument, myPage)
@@ -65,7 +60,36 @@ class PdfGenrator {
         content.forEach {
             val row = dataTable.createRow(10f)
             it.forEachIndexed { index, s ->
-                val cell = row.createCell(cellWidthList[index], s)
+                if (s is List<*>){
+                    s.forEach {listItem->
+                        if ( listItem is MediaItemsModel) {
+                            val imageDimension = cellWidthList[index] / s.size
+                            if (listItem.filepath.split(".").last() in setOf("jpg", "jpeg", "png", "bmp", "bpg")) {
+                                try{
+                                    val f = File(baseDir, listItem.filepath)
+                                    println("basedir $baseDir \n filepath ${listItem.filepath}")
+                                    println("file $f")
+                                    val bi = ImageIO.read(f)
+                                    println("bi: $bi")
+                                    val image = Image(bi)
+                                    image.scaleByWidth(imageDimension)
+                                    image.scaleByHeight(imageDimension)
+                                    val cell = row.createImageCell(imageDimension, image)
+                                } catch (e : IIOException){
+                                    println(e.message)
+                                } catch(e: NullPointerException){
+                                    println(e.message)
+                                }
+                            }
+                        }
+                    }
+                } else if( s is String){
+                    val cell = row.createCell(cellWidthList[index], s)
+                } else if ( s is Int){
+                    val cell = row.createCell(cellWidthList[index], s.toString())
+                } else if (s is Long){
+                    val cell = row.createCell(cellWidthList[index], s.toString())
+                }
             }
         }
         dataTable.draw()

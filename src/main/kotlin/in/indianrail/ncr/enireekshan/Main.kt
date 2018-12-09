@@ -1,10 +1,8 @@
 package `in`.indianrail.ncr.enireekshan
 
-import `in`.indianrail.ncr.enireekshan.controller.InspectionController
 import `in`.indianrail.ncr.enireekshan.controller.ReportsController
 import `in`.indianrail.ncr.enireekshan.controller.UserController
 import `in`.indianrail.ncr.enireekshan.dao.*
-import `in`.indianrail.ncr.enireekshan.model.*
 import `in`.indianrail.ncr.enireekshan.routes.files
 import `in`.indianrail.ncr.enireekshan.routes.inspections
 import `in`.indianrail.ncr.enireekshan.routes.reports
@@ -13,29 +11,15 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ImportUserRecord
-import com.google.firebase.auth.UserRecord
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
-import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.gson.gson
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.PartData
-import io.ktor.http.content.forEachPart
-import io.ktor.http.content.streamProvider
-import io.ktor.request.receive
-import io.ktor.request.receiveMultipart
-import io.ktor.response.respond
-import io.ktor.response.respondFile
 import io.ktor.routing.*
-import io.ktor.util.error
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils.create
 import org.jetbrains.exposed.sql.SchemaUtils.createMissingTablesAndColumns
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
 import java.text.DateFormat
 
 fun initDB() {
