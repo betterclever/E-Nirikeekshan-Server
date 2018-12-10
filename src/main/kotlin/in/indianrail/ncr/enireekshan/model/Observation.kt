@@ -45,7 +45,7 @@ data class ObservationModel(
         } }
         var assignedUserString = createStringFromCollection(assignedToUserNameList)
         val row = dataTable.createRow(10f)
-        row.createCell(marginList[0], index.toString())
+        row.createCell(marginList[0], (index+1).toString())
         row.createCell(marginList[1], title)
         row.createCell(marginList[2], assignedUserString)
         return dataTable
@@ -73,7 +73,6 @@ data class ObservationCreateModel(
         val timestamp: Long,
         val mediaLinks: List<String>
 )
-
 data class ObservationStatusUpdateModel(
         val status: String,
         val senderID: Long

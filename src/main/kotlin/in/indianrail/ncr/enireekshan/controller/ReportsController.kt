@@ -37,9 +37,8 @@ class ReportsController{
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
             }
-            println(newObservationID)
+
             observation.assignedToUsers.forEach { phone->
-                println("INSIDE LOOP FOR ASSIGNES")
                 val entry = ObservationAssignees.insert {
                     it[observationID] = newObservationID
                     it[userID] = EntityID(phone, Users)
@@ -63,9 +62,8 @@ class ReportsController{
             }
             observationIDList.add(newObservationID.value)
         }
-        val returnVAl = Report[newReportID].getReportModel()
-        println(returnVAl)
-        returnVAl
+        Report[newReportID].getReportModel()
+
     }
 
     fun getReportsByID(id: Int) = transaction {

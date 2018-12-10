@@ -94,3 +94,12 @@ fun getDateTime(s: Long): String? {
         e.toString()
     }
 }
+fun getDate(s: Long): String? {
+    return try {
+        val sdf = SimpleDateFormat("MM/dd/yyyy")
+        val netDate = Date(s)
+        sdf.format(netDate)
+    } catch (e: Exception) {
+        e.toString()
+    }
+}

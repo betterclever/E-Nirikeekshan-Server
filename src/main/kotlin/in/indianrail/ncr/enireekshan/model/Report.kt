@@ -5,6 +5,7 @@ import `in`.indianrail.ncr.enireekshan.controller.prepareUserModel
 import `in`.indianrail.ncr.enireekshan.createStringFromCollection
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.routes.getDate
 import `in`.indianrail.ncr.enireekshan.routes.getDateTime
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
 import be.quodlibet.boxable.BaseTable
@@ -28,7 +29,7 @@ data class ReportModel(
         val timestamp: Long,
         val title: String
 ) : TableWriterInterface{
-    override fun writeReportToPDF() : String {
+    override fun writeReportToPDF() : String = transaction{
         val filename = "reports-$id.pdf"
         val myPage = PDPage(PDRectangle.A4)
         val mainDocument = PDDocument()
@@ -36,46 +37,48 @@ data class ReportModel(
         val font = PDType1Font.HELVETICA
         val leftMargin = myPage.artBox.width * 0.05f
         val titleFontSize = 10.0f
-        var yposition = myPage.artBox.height * 0.05f
+        var yposition = myPage.artBox.height * 0.95f
         val submitterModel = transaction {
             `in`.indianrail.ncr.enireekshan.dao.Users.select { Users.id eq submittedBy }.map { usr ->
                 usr.prepareUserModel()
             }
         }
         val submitterDesignation = submitterModel[0].designation + ", " + submitterModel[0].location
-        val preTableString = "INSPECTION OF ${title.toUpperCase()} BY UNDERSIGNED ON ${getDateTime(timestamp)}"
+        val preTableString = "INSPECTION OF ${title.toUpperCase()} BY UNDERSIGNED ON ${getDate(timestamp)}"
         PDStreamUtils.write(contentStream, preTableString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
         mainDocument.addPage(myPage)
-        val yStart = myPage.artBox.upperRightY * 0.80f
+        val yStart = myPage.artBox.upperRightY * 0.9f
         val yStartNewPage = myPage.artBox.upperRightY * 0.95f
         val bottomMargin = 10.0f
         val tableWidth = myPage.mediaBox.width * 0.9f
         val margin = myPage.mediaBox.width * 0.05f
         var dataTable = BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, mainDocument, myPage, true, true)
-        dataTable = this.observations[0].writeHeaderToPDF(dataTable)
+        dataTable = this@ReportModel.observations[0].writeHeaderToPDF(dataTable)
         var copyToUsers = mutableSetOf<String>()
-        this.observations.forEachIndexed { index, observationModel ->
+        this@ReportModel.observations.forEachIndexed { index, observationModel ->
             dataTable = observationModel.writeTableToPDF(dataTable, index)
-            observationModel.assignedToUsers.forEach{
+            observationModel.assignedToUsers.forEach {
                 copyToUsers.add(UserEntity[it].designation)
             }
         }
         val numberOfPages = dataTable.document.numberOfPages
-        yposition = dataTable.document.getPage(numberOfPages).artBox.height
+        yposition = dataTable.document.getPage(numberOfPages-1).artBox.height
         dataTable.draw()
+        println("YPOSITION: $yposition")
         val submitterName = "( ${submitterModel[0].name} )"
         PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
         yposition += 10f
         PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
         yposition += 10f
         PDStreamUtils.write(contentStream, "COPY: " + createStringFromCollection(copyToUsers), font, titleFontSize, myPage.artBox.width * 0.1f, yposition + 10f, Color.BLACK)
+
         contentStream.close()
         val file = File(uploadDir, filename)
         Files.createParentDirs(file)
         println("Sample file saved at : " + file.getAbsolutePath())
         mainDocument.save(file)
         mainDocument.close()
-        return file.absolutePath
+        file.absolutePath
     }
 
     override fun writeHeaderToPDF(baseTable: BaseTable): BaseTable {
