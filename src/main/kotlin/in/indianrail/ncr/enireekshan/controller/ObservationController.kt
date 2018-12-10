@@ -68,35 +68,6 @@ class ObservationController {
                 .map { it.prepareMessageModel() }
     }
 
-    fun addObservation(observationModel: ObservationCreateModel) = transaction {
-        val newObservationID = Observations.insertAndGetId {
-            it[title] = observationModel.title
-            it[status] = STATUS_UNSEEN
-            it[urgent] = observationModel.urgent
-            it[reportID] = EntityID(observationModel.reportID, Reports)
-            it[timestamp] = observationModel.timestamp
-            it[seenByPCSO] = false
-            it[seenBySrDSO] = false
-            it[assignedToUser] = EntityID(observationModel.assignedToUser, Users)
-        }
-//        val recepients = mutableListOf<String>()
-//        observationModel.assigneeRoles.forEach {
-//            val res = Users.slice(Users.id, Users.fcmToken).select {
-//                (Users.location eq it.location) and
-//                        (Users.designation eq it.designation) and
-//                        (Users.department eq it.department)
-//            }
-//            res.forEach { row ->
-//                row[Users.fcmToken]?.let { recepients.add(it) }
-//                ObservationAssignees.insert {
-//                    it[observationID] = newObservationID
-//                    it[userID] = row[Users.id]
-//                }
-//            }
-//        }
-        newObservationID.value
-    }
-
     fun getObservationByID(id: Int) = transaction {
         val results = (Observations innerJoin Users).select { Observations.id eq id }
                 .map { it.prepareObservationModel() }

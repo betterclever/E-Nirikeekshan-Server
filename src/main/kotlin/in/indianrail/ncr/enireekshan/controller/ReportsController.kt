@@ -54,7 +54,7 @@ class ReportsController{
             }
             observationIDList.add(newObservationID.value)
         }
-        Report.get(newReportID)
+        Report.get(newReportID).getReportModel()
     }
 
     fun getReportsByID(id: Int) = transaction {

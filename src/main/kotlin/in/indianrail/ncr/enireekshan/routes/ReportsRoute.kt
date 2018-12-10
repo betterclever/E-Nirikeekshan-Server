@@ -24,7 +24,9 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
     }
     post("/new") {
         runVerifed(firebaseAuth, call) {
+            println(call.request)
             val report = call.receive<ReportCreateModel>()
+            println(report)
             call.respond(reportsController.addReport(report))
         }
     }

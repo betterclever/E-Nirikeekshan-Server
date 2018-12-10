@@ -65,14 +65,6 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
         }
     }
 
-    post("/new") {
-        runVerifed(firebaseAuth, call) {
-            val observationCreateModel = call.receive<ObservationCreateModel>()
-            println(observationCreateModel)
-            call.respond(observationController.addObservation(observationCreateModel))
-        }
-    }
-
     post("/{id}/messages") {
         runVerifed(firebaseAuth, call) {
             val idS = call.parameters["id"]
