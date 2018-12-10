@@ -16,28 +16,30 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.gson.gson
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respond
 import io.ktor.routing.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.createMissingTablesAndColumns
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.text.DateFormat
 
-fun initDB() {
-    val config = HikariConfig("/hikari.properties")
-    val ds = HikariDataSource(config)
-    Database.connect(ds)
-
-    transaction {
-        createMissingTablesAndColumns(Users, Observations, Messages, MediaItems, Reports)
-    }
-}
-
 val topLevelClass = object : Any() {}.javaClass.enclosingClass
 val userController = UserController()
 val reportsController = ReportsController()
 
+fun initDB() {
+    val config = HikariConfig("/hikari.properties")
+    val dataSource = HikariDataSource(config)
+    Database.connect(dataSource)
+
+    transaction {
+        createMissingTablesAndColumns(Users, Observations, Messages, MediaItems, Reports, ObservationAssignees)
+    }
+}
+
 suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
-    /*try {
+    try {
         val authToken = call.request.headers["Authorization"]
         val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
         val phone = decodedToken.claims["phone_number"] as String
@@ -46,7 +48,7 @@ suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall,
     } catch (exception: Exception) {
         exception.printStackTrace()
         call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
-    }*/
+    }
     block(1234567890)
 }
 

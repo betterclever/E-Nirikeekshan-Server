@@ -41,17 +41,19 @@ class ObservationController {
         val sentByUser =  Users.select{Users.id eq senderID}.map{
             it.prepareUserModel()
         }
-        val userAssignedForObservation = Observation[messageModel.observationID].assignedToUser.value
+        val userAssignedForObservation = Observation[messageModel.observationID].assignedToUser.map{ it.phone.value}
         val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq  messageModel.observationID}.map{
             it[Reports.submittedBy].value
         }[0]
         var assignedUserTokenList = mutableListOf<String?>()
-        if(sentByUser[0].phone == userAssignedForObservation){
-            assignedUserTokenList = mutableListOf(UserEntity[userAssignedForObservation].fcmToken)
-
-        } else{
-            assignedUserTokenList = mutableListOf(UserEntity[observationCreatedByUser].fcmToken)
+        userAssignedForObservation.forEach {
+            if (it != sentByUser[0].phone) {
+                assignedUserTokenList.add(UserEntity[it].fcmToken)
+            }
         }
+        if(observationCreatedByUser != sentByUser[0].phone)
+            assignedUserTokenList.add(UserEntity[observationCreatedByUser].fcmToken)
+
         println("USER TOKEN LIST: $assignedUserTokenList")
         if(assignedUserTokenList[0] != null) {
             notificationUtils.sendNotification(messageModel.message, mapOf(
@@ -121,14 +123,13 @@ fun ResultRow.prepareObservationModel() = ObservationModel(
         status = this[Observations.status],
         reportID = this[Reports.id].value,
         timestamp = this[Observations.timestamp],
-        //assignees = Observation[this[Observations.id]].assignees.map(UserEntity::getUserModel),
+        assignedToUser = Observation[this[Observations.id]].assignedToUser.map { it.phone.value },
         submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
         mediaItems = MediaItems.select { MediaItems.observationId eq this@prepareObservationModel[Observations.id].value }.map {
             MediaItemsModel(it[MediaItems.filePath])
         },
         seenBySrDSO = this[Observations.seenBySrDSO],
-        seenByPCSO = this[Observations.seenByPCSO],
-        assignedToUser = this[Observations.assignedToUser].value
+        seenByPCSO = this[Observations.seenByPCSO]
 )
 
 fun ResultRow.prepareUserModel() = UserModel(

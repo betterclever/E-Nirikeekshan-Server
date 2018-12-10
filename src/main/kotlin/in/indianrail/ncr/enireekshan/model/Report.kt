@@ -3,6 +3,7 @@ package `in`.indianrail.ncr.enireekshan.model
 import `in`.indianrail.ncr.enireekshan.TableWriterInterface
 import `in`.indianrail.ncr.enireekshan.controller.prepareUserModel
 import `in`.indianrail.ncr.enireekshan.dao.Users
+import `in`.indianrail.ncr.enireekshan.routes.getDateTime
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
 import be.quodlibet.boxable.BaseTable
 import be.quodlibet.boxable.utils.PDStreamUtils
@@ -22,7 +23,8 @@ data class ReportModel(
         val id: Int,
         val submittedBy: Long,
         val observations: List<ObservationModel>,
-        val timestamp: Long
+        val timestamp: Long,
+        val title: String
 ) : TableWriterInterface{
     override fun writeReportToPDF() : String {
         val filename = "reports-$id.pdf"
@@ -32,16 +34,14 @@ data class ReportModel(
         val font = PDType1Font.HELVETICA
         val leftMargin = myPage.artBox.width * 0.05f
         val titleFontSize = 10.0f
-        val yposition = 700.00f
+        var yposition = myPage.artBox.height * 0.05f
         val submitterModel = transaction {
             `in`.indianrail.ncr.enireekshan.dao.Users.select { Users.id eq submittedBy }.map { usr ->
                 usr.prepareUserModel()
             }
         }
-        val submitterName = submitterModel[0].name
         val submitterDesignation = submitterModel[0].designation
-        val submitterLocation = submitterModel[0].location
-        val preTableString = "Report submitted by $submitterName, $submitterDesignation, $submitterLocation"
+        val preTableString = "INSPECTION OF ${title.toUpperCase()} BY UNDERSIGNED ON ${getDateTime(timestamp)}"
         PDStreamUtils.write(contentStream, preTableString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
         mainDocument.addPage(myPage)
         val yStart = myPage.artBox.upperRightY * 0.80f
@@ -54,7 +54,13 @@ data class ReportModel(
         this.observations.forEachIndexed { index, observationModel ->
             dataTable = observationModel.writeTableToPDF(dataTable, index)
         }
+        val numberOfPages = dataTable.document.numberOfPages
+        yposition = dataTable.document.getPage(numberOfPages).artBox.height
         dataTable.draw()
+        val submitterName = "( ${submitterModel[0].name} )"
+        PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
+        yposition += 10f
+        PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
         contentStream.close()
         val file = File(uploadDir, filename)
         Files.createParentDirs(file)
@@ -80,5 +86,6 @@ data class ReportModel(
 data class ReportCreateModel(
         val submittedBy: Long,
         val timestamp: Long,
-        val observations: List<ObservationCreateModel>
+        val observations: List<ObservationCreateModel>,
+        val title: String
 )

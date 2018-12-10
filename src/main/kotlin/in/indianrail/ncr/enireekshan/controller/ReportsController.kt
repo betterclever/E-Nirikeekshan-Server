@@ -34,9 +34,14 @@ class ReportsController{
                 it[timestamp] = observation.timestamp
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
-                it[assignedToUser] = EntityID(observation.assignedToUser, Users)
             }
-            val assignedUserTokenList =  Users.select{Users.id eq observation.assignedToUser}.map{
+            observation.assignedToUser.forEach {phone->
+                val entry = ObservationAssignees.insert {
+                    it[observationID] = newObservationID
+                    it[userID] = EntityID(phone, Users)
+                }
+            }
+            val assignedUserTokenList =  Users.select{Users.id inList observation.assignedToUser.map{it}}.map{
                 it[Users.fcmToken]
             }
             notificationUtils.sendNotification(observation.title, mapOf(
@@ -73,6 +78,7 @@ class ReportsController{
             timestamp = this[Reports.timestamp],
             observations = (Observations innerJoin Reports).select { Observations.reportID eq this@prepareReportModel[Reports.id]}.map{
                 it.prepareObservationModel()
-            }
+            },
+            title = this[Reports.title]
     )
 }

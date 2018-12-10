@@ -13,15 +13,14 @@ import java.io.File
 import javax.imageio.IIOException
 import javax.imageio.ImageIO
 
-
 val STATUS_UNSEEN = "unseen"
 val STATUS_SEEN = "seen"
 val STATUS_COMPLIED = "complied"
 val baseDir = File("/home/enireekshan/server-uploads")
-val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
-val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
+val marginList = listOf(10f,60f,30f)
+val headerList = listOf("Sl.", "Title", "Assigned To")
 data class ObservationModel(
-        val assignedToUser: Long,
+        val assignedToUser: List<Long>,
         val id: Int,
         val reportID: Int,
         val status: String,
@@ -43,41 +42,18 @@ data class ObservationModel(
         return dataTable
     }
     override fun writeTableToPDF(dataTable: BaseTable, index : Int) : BaseTable{
-        val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
-        val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
-
-        val assignedToUserName = transaction { Users.select { Users.id eq assignedToUser }.map{
-            it[Users.name]
+        val assignedToUserNameList = transaction { Users.select { Users.id inList  assignedToUser.map { it } }.map{
+            it[Users.designation]
         } }
+        var assignedUserString = ""
+        for(i in 0 until assignedToUserNameList.size){
+             assignedUserString += assignedToUserNameList[i]
+        }
+        assignedUserString += assignedToUserNameList[assignedToUserNameList.size - 1]
         val row = dataTable.createRow(10f)
         row.createCell(marginList[0], index.toString())
         row.createCell(marginList[1], title)
-        row.createCell(marginList[2], assignedToUserName[0])
-        row.createCell(marginList[3], getDateTime(timestamp))
-        row.createCell(marginList[4], status)
-        row.createCell(marginList[5], if (urgent) "YES" else "NO")
-        var numberofImages = 0
-        mediaItems.forEach {listItem->
-            if (listItem.filepath.split(".").last() in setOf("jpg", "jpeg", "png", "bmp", "bpg")) numberofImages+=1
-        }
-        if(numberofImages > 0) {
-            val imageDimension = marginList[6] / numberofImages
-            mediaItems.forEach { listItem ->
-                if (listItem.filepath.split(".").last() in setOf("jpg", "jpeg", "png", "bmp", "bpg")) {
-                    try {
-                        val image = Image(ImageIO.read(File(baseDir, listItem.filepath)))
-                        image.scaleByWidth(imageDimension)
-                        image.scaleByHeight(imageDimension)
-                        val cell = row.createImageCell(imageDimension, image)
-                        cell.scaleToFit()
-                    } catch (e: IIOException) {
-                        println(e.message)
-                    } catch (e: NullPointerException) {
-                        println(e.message)
-                    }
-                }
-            }
-        }
+        row.createCell(marginList[2], assignedUserString)
         return dataTable
     }
 
@@ -99,7 +75,7 @@ data class AssigneeRole(
 data class ObservationCreateModel(
         val title: String,
         val urgent: Boolean,
-        val assignedToUser: Long,
+        val assignedToUser: List<Long>,
         val timestamp: Long,
         val mediaLinks: List<String>
 )

@@ -15,7 +15,6 @@ object Observations : IntIdTable() {
     val reportID = reference("reportID", Reports)
     val seenByPCSO = bool("seenByPCSO")
     val seenBySrDSO = bool("seenBySrDSO")
-    val assignedToUser = reference("assignedToUser", Users)
 }
 
 class Observation(id: EntityID<Int>) : IntEntity(id) {
@@ -27,12 +26,12 @@ class Observation(id: EntityID<Int>) : IntEntity(id) {
     var reportID by Observations.reportID
     var timestamp by Observations.timestamp
     val mediaItems by MediaItem referrersOn MediaItems.observationId
-    val assignedToUser by Observations.assignedToUser
+    val assignedToUser by UserEntity via ObservationAssignees
     var seenByPCSO by Observations.seenByPCSO
     var seenBySrDSO by Observations.seenBySrDSO
 
     fun getObservationModel() = ObservationModel(
-            assignedToUser = assignedToUser.value,
+            assignedToUser = assignedToUser.map { it.phone.value }, //List of User Phone number i.e. List<Long>
             id = observationID.value,
             reportID = reportID.value,
             status = status,
@@ -45,5 +44,3 @@ class Observation(id: EntityID<Int>) : IntEntity(id) {
             submittedBy = Report[reportID.value].submittedBy.getUserModel()
     )
 }
-
-
