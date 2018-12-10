@@ -3,8 +3,6 @@ package `in`.indianrail.ncr.enireekshan.controller
 import `in`.indianrail.ncr.enireekshan.NotificationUtils
 import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.*
-import com.google.cloud.storage.Acl
-import com.typesafe.config.ConfigException
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -23,38 +21,38 @@ class ReportsController{
             it[submittedBy] = EntityID(report.submittedBy, Users)
             it[timestamp] = report.timestamp
         }
-        val inspectionIDList = ArrayList<Int>()
+        val observationIDList = ArrayList<Int>()
         val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
             it.prepareUserModel()
         }
-        report.inspections.forEach{ inspection ->
-            val newInspectionID = Inspections.insertAndGetId {
-                it[title] = inspection.title
+        report.observations.forEach{ observation ->
+            val newObservationID = Observations.insertAndGetId {
+                it[title] = observation.title
                 it[status] = STATUS_UNSEEN
-                it[urgent] = inspection.urgent
+                it[urgent] = observation.urgent
                 it[reportID] = newReportID
-                it[timestamp] = inspection.timestamp
+                it[timestamp] = observation.timestamp
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
-                it[assignedToUser] = EntityID(inspection.assignedToUser, Users)
+                it[assignedToUser] = EntityID(observation.assignedToUser, Users)
             }
-            val assignedUserTokenList =  Users.select{Users.id eq inspection.assignedToUser}.map{
+            val assignedUserTokenList =  Users.select{Users.id eq observation.assignedToUser}.map{
                 it[Users.fcmToken]
             }
-            notificationUtils.sendNotification(inspection.title, mapOf(
+            notificationUtils.sendNotification(observation.title, mapOf(
                     "type" to "New Assignment",
                     "sentBy" to sentByUser[0].name,
                     "sentByDepartment" to sentByUser[0].department,
                     "sentByLocation" to sentByUser[0].location
             ), assignedUserTokenList)
 
-            inspection.mediaLinks.forEach{mediaLink ->
+            observation.mediaLinks.forEach{mediaLink ->
                 val newMediaID = MediaItems.insertAndGetId {
-                    it[inspectionId] = EntityID(newInspectionID.value, Inspections)
+                    it[observationId] = EntityID(newObservationID.value, Observations)
                     it[filePath] = mediaLink
                 }
             }
-            inspectionIDList.add(newInspectionID.value)
+            observationIDList.add(newObservationID.value)
         }
         Report.get(newReportID)
     }
@@ -73,8 +71,8 @@ class ReportsController{
             id = this[Reports.id].value,
             submittedBy = this[Reports.submittedBy].value,
             timestamp = this[Reports.timestamp],
-            inspections = (Inspections innerJoin Reports).select { Inspections.reportID eq this@prepareReportModel[Reports.id]}.map{
-                it.prepareInspectionModel()
+            observations = (Observations innerJoin Reports).select { Observations.reportID eq this@prepareReportModel[Reports.id]}.map{
+                it.prepareObservationModel()
             }
     )
 }

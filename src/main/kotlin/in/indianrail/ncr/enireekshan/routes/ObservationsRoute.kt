@@ -1,7 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
-import `in`.indianrail.ncr.enireekshan.controller.InspectionController
-import `in`.indianrail.ncr.enireekshan.model.InspectionCreateModel
+import `in`.indianrail.ncr.enireekshan.controller.ObservationController
+import `in`.indianrail.ncr.enireekshan.model.ObservationCreateModel
 import `in`.indianrail.ncr.enireekshan.model.MessageCreateModel
 import `in`.indianrail.ncr.enireekshan.runVerifed
 import com.google.firebase.auth.FirebaseAuth
@@ -15,10 +15,9 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
-import io.ktor.util.error
 
-fun Route.inspections(firebaseAuth: FirebaseAuth){
-    val inspectionController = InspectionController()
+fun Route.observations(firebaseAuth: FirebaseAuth){
+    val observationController = ObservationController()
 
     get("/markedTo/{userID}") {
         runVerifed(firebaseAuth, call) {
@@ -26,7 +25,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if (userID != null) {
                 try {
                     val num = userID.toLong()
-                    call.respond(inspectionController.getInspectionAssignedTo(num))
+                    call.respond(observationController.getObservationAssignedTo(num))
                 } catch (e: Exception) {
                    application.log.error(e.message)
                 }
@@ -39,7 +38,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if (userID != null) {
                 try {
                     val num = userID.toLong()
-                    call.respond(inspectionController.getInspectionsSubmittedBy(num))
+                    call.respond(observationController.getObservationsSubmittedBy(num))
                 } catch (e: Exception) {
                     call.respond(emptyArray<Int>())
                     application.log.error(e.message)
@@ -54,7 +53,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if (idS != null) {
                 val response = try {
                     val id = idS.toInt()
-                    inspectionController.getInspectionByID(id)
+                    observationController.getObservationByID(id)
                 } catch (exception: Exception) {
                     exception.printStackTrace()
                     null
@@ -68,9 +67,9 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
 
     post("/new") {
         runVerifed(firebaseAuth, call) {
-            val inspectionCreateModel = call.receive<InspectionCreateModel>()
-            println(inspectionCreateModel)
-            call.respond(inspectionController.addInspection(inspectionCreateModel))
+            val observationCreateModel = call.receive<ObservationCreateModel>()
+            println(observationCreateModel)
+            call.respond(observationController.addObservation(observationCreateModel))
         }
     }
 
@@ -81,7 +80,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if (idS != null) {
                 try {
                     val id = idS.toInt()
-                    call.respond(inspectionController.addMessage(message, it))
+                    call.respond(observationController.addMessage(message, it))
                 } catch (expection: Exception) {
                     expection.printStackTrace()
                     call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
@@ -95,7 +94,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if(idS!=null) {
                 try {
                     val id = idS.toInt()
-                    call.respond(inspectionController.getMessages(id))
+                    call.respond(observationController.getMessages(id))
                 } catch (expection: Exception) {
                     expection.printStackTrace()
                     call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
@@ -111,7 +110,7 @@ fun Route.inspections(firebaseAuth: FirebaseAuth){
             if (idS != null) {
                 val response = try {
                     val id = idS.toInt()
-                    inspectionController.updateInspectionStatus(id, newStatus)
+                    observationController.updateObservationStatus(id, newStatus)
                     "Success"
                 } catch (exception: Exception) {
                     exception.printStackTrace()

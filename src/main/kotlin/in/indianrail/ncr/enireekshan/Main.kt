@@ -4,7 +4,7 @@ import `in`.indianrail.ncr.enireekshan.controller.ReportsController
 import `in`.indianrail.ncr.enireekshan.controller.UserController
 import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.routes.files
-import `in`.indianrail.ncr.enireekshan.routes.inspections
+import `in`.indianrail.ncr.enireekshan.routes.observations
 import `in`.indianrail.ncr.enireekshan.routes.reports
 import `in`.indianrail.ncr.enireekshan.routes.users
 import com.google.auth.oauth2.GoogleCredentials
@@ -28,7 +28,7 @@ fun initDB() {
     Database.connect(ds)
 
     transaction {
-        createMissingTablesAndColumns(Users, Inspections, Messages, MediaItems, Reports)
+        createMissingTablesAndColumns(Users, Observations, Messages, MediaItems, Reports)
     }
 }
 
@@ -107,8 +107,8 @@ fun Application.main() {
             route("/users") {
                 users(firebaseAuth)
             }
-            route("/inspections") {
-                inspections(firebaseAuth)
+            route("/observations") {
+                observations(firebaseAuth)
             }
             route("/files") {
                 files(firebaseAuth)

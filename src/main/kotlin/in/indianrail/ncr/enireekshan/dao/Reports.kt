@@ -1,7 +1,5 @@
 package `in`.indianrail.ncr.enireekshan.dao
 
-import `in`.indianrail.ncr.enireekshan.dao.Inspection.Companion.referrersOn
-import `in`.indianrail.ncr.enireekshan.model.InspectionModel
 import `in`.indianrail.ncr.enireekshan.model.ReportModel
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
@@ -18,13 +16,13 @@ class Report(id: EntityID<Int>) : IntEntity(id) {
 
     var ReportID by Reports.id
     var submittedBy by UserEntity referencedOn Reports.submittedBy
-    val inspections by Inspection referrersOn Inspections.reportID
+    val observations by Observation referrersOn Observations.reportID
     val timestamp by Reports.timestamp
 
     fun getReportModel() = ReportModel(
             id = ReportID.value,
             submittedBy = submittedBy.phone.value,
-            inspections = inspections.map{ it.getInspectionModel() },
+            observations = observations.map{ it.getObservationModel() },
             timestamp =  timestamp
     )
 }

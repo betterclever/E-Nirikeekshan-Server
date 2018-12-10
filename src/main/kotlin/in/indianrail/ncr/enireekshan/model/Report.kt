@@ -3,7 +3,6 @@ package `in`.indianrail.ncr.enireekshan.model
 import `in`.indianrail.ncr.enireekshan.TableWriterInterface
 import `in`.indianrail.ncr.enireekshan.controller.prepareUserModel
 import `in`.indianrail.ncr.enireekshan.dao.Users
-import `in`.indianrail.ncr.enireekshan.reportsController
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
 import be.quodlibet.boxable.BaseTable
 import be.quodlibet.boxable.utils.PDStreamUtils
@@ -13,8 +12,6 @@ import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.font.PDType1Font
-import org.jetbrains.exposed.dao.EntityID
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Color
@@ -24,7 +21,7 @@ import java.io.File
 data class ReportModel(
         val id: Int,
         val submittedBy: Long,
-        val inspections: List<InspectionModel>,
+        val observations: List<ObservationModel>,
         val timestamp: Long
 ) : TableWriterInterface{
     override fun writeReportToPDF() : String {
@@ -53,9 +50,9 @@ data class ReportModel(
         val tableWidth = myPage.mediaBox.width * 0.9f
         val margin = myPage.mediaBox.width * 0.05f
         var dataTable = BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, mainDocument, myPage, true, true)
-        dataTable = this.inspections[0].writeHeaderToPDF(dataTable)
-        this.inspections.forEachIndexed { index, inspectionModel ->
-            dataTable = inspectionModel.writeTableToPDF(dataTable, index)
+        dataTable = this.observations[0].writeHeaderToPDF(dataTable)
+        this.observations.forEachIndexed { index, observationModel ->
+            dataTable = observationModel.writeTableToPDF(dataTable, index)
         }
         dataTable.draw()
         contentStream.close()
@@ -83,5 +80,5 @@ data class ReportModel(
 data class ReportCreateModel(
         val submittedBy: Long,
         val timestamp: Long,
-        val inspections: List<InspectionCreateModel>
+        val observations: List<ObservationCreateModel>
 )

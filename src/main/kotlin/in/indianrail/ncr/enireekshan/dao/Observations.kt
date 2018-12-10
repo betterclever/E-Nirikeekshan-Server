@@ -1,13 +1,13 @@
 package `in`.indianrail.ncr.enireekshan.dao
 
-import `in`.indianrail.ncr.enireekshan.model.InspectionModel
+import `in`.indianrail.ncr.enireekshan.model.ObservationModel
 import `in`.indianrail.ncr.enireekshan.model.MediaItemsModel
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.IntIdTable
 
-object Inspections : IntIdTable() {
+object Observations : IntIdTable() {
     val title = text("title")
     val status = text("status")
     val timestamp = long("timestamp")
@@ -18,22 +18,22 @@ object Inspections : IntIdTable() {
     val assignedToUser = reference("assignedToUser", Users)
 }
 
-class Inspection(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Inspection>(Inspections)
-    var title by Inspections.title
-    var inspectionID by Inspections.id
-    var status by Inspections.status
-    var urgent by Inspections.urgent
-    var reportID by Inspections.reportID
-    var timestamp by Inspections.timestamp
-    val mediaItems by MediaItem referrersOn MediaItems.inspectionId
-    val assignedToUser by Inspections.assignedToUser
-    var seenByPCSO by Inspections.seenByPCSO
-    var seenBySrDSO by Inspections.seenBySrDSO
+class Observation(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<Observation>(Observations)
+    var title by Observations.title
+    var observationID by Observations.id
+    var status by Observations.status
+    var urgent by Observations.urgent
+    var reportID by Observations.reportID
+    var timestamp by Observations.timestamp
+    val mediaItems by MediaItem referrersOn MediaItems.observationId
+    val assignedToUser by Observations.assignedToUser
+    var seenByPCSO by Observations.seenByPCSO
+    var seenBySrDSO by Observations.seenBySrDSO
 
-    fun getInspectionModel() = InspectionModel(
+    fun getObservationModel() = ObservationModel(
             assignedToUser = assignedToUser.value,
-            id = inspectionID.value,
+            id = observationID.value,
             reportID = reportID.value,
             status = status,
             timestamp = timestamp,

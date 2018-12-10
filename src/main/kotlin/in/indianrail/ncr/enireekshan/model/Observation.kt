@@ -20,7 +20,7 @@ val STATUS_COMPLIED = "complied"
 val baseDir = File("/home/enireekshan/server-uploads")
 val marginList = listOf(5f,20f,14f,10f,8f,8f,35f)
 val headerList = listOf("Sl.", "Title", "Assigned To", "Date", "Status", "Urgent", "Images")
-data class InspectionModel(
+data class ObservationModel(
         val assignedToUser: Long,
         val id: Int,
         val reportID: Int,
@@ -96,7 +96,7 @@ data class AssigneeRole(
         val department: String
 )
 
-data class InspectionCreateModel(
+data class ObservationCreateModel(
         val title: String,
         val urgent: Boolean,
         val assignedToUser: Long,

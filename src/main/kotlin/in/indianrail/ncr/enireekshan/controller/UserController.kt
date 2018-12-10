@@ -1,10 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
 import `in`.indianrail.ncr.enireekshan.dao.*
-import `in`.indianrail.ncr.enireekshan.model.InspectionModel
-import `in`.indianrail.ncr.enireekshan.model.MediaItemsModel
 import `in`.indianrail.ncr.enireekshan.model.UserModel
-import com.google.cloud.storage.Acl
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -72,21 +69,21 @@ class UserController {
     fun searchUser(searchString: String): List<UserModel> = transaction {
         return@transaction exec("select * from Users where " +
                 "similarity(LOWER('$searchString'), LOWER(concat(designation, location))) > 0.6 " +
-                "ORDER BY similarity(LOWER('sr dcm agra'), LOWER(concat(designation, location))) DESC;", {
-            val result = mutableListOf<UserModel>()
-            while (it.next()) {
-                result.add(UserModel(
-                        phone = it.getLong(1),
-                        name = it.getString(5),
-                        department = it.getString(2),
-                        designation = it.getString(3),
-                        location = it.getString(4),
-                        assignable = it.getBoolean(7),
-                        fcmtoken = null
-                ))
-            }
-            return@exec result
-        }) ?: emptyList<UserModel>()
+                "ORDER BY similarity(LOWER('sr dcm agra'), LOWER(concat(designation, location))) DESC;") {
+                    val result = mutableListOf<UserModel>()
+                    while (it.next()) {
+                        result.add(UserModel(
+                                phone = it.getLong(1),
+                                name = it.getString(5),
+                                department = it.getString(2),
+                                designation = it.getString(3),
+                                location = it.getString(4),
+                                assignable = it.getBoolean(7),
+                                fcmtoken = null
+                        ))
+                    }
+                    return@exec result
+                } ?: emptyList<UserModel>()
     }
 
     fun getUser(phone: Long): UserModel? = transaction {

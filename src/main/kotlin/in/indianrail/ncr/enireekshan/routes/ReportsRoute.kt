@@ -1,8 +1,5 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
-import `in`.indianrail.ncr.enireekshan.PdfGenrator
-import `in`.indianrail.ncr.enireekshan.controller.prepareUserModel
-import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.model.ReportCreateModel
 import `in`.indianrail.ncr.enireekshan.reportsController
 import `in`.indianrail.ncr.enireekshan.runVerifed
@@ -15,14 +12,10 @@ import io.ktor.response.respondFile
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.transactions.transactionScope
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-val pdfGenerator = PdfGenrator()
 fun Route.reports(firebaseAuth: FirebaseAuth){
     get("/") {
         runVerifed(firebaseAuth, this.call) {

@@ -7,7 +7,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.IntIdTable
 
 object MediaItems : IntIdTable() {
-    val inspectionId = reference("inspectionId", Inspections)
+    val observationId = reference("observationId", Observations)
     val filePath = text("filePath")
 }
 
@@ -15,7 +15,7 @@ class MediaItem(id: EntityID<Int>): IntEntity(id) {
     companion object : IntEntityClass<MediaItem>(MediaItems)
 
     var filePath by MediaItems.filePath
-    var inspection by Inspection referencedOn MediaItems.inspectionId
+    var observation by Observation referencedOn MediaItems.observationId
 
     fun getMediaItemsModel() = MediaItemsModel(
             filepath = filePath

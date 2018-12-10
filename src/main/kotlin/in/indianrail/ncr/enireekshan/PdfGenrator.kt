@@ -27,7 +27,6 @@ class PdfGenrator {
         val font = PDType1Font.HELVETICA
         val leftMargin = myPage.artBox.width * 0.05f
         val titleFontSize = 10.0f
-        val submittedBy = "ABC"
         val yposition = 700.00f
 //        val startWithString = "Details of the Report submitted by " + submittedBy
         PDStreamUtils.write(contentStream, startWithString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
