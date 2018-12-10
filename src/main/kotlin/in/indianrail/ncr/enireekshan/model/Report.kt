@@ -20,6 +20,8 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Color
 import java.io.File
+import java.lang.Float.max
+import java.lang.Float.min
 
 
 data class ReportModel(
@@ -30,7 +32,7 @@ data class ReportModel(
         val title: String
 ) : TableWriterInterface{
     override fun writeReportToPDF() : String = transaction{
-        val filename = "reports-$id.pdf"
+        val filename = "report-$id.pdf"
         val myPage = PDPage(PDRectangle.A4)
         val mainDocument = PDDocument()
         val contentStream = PDPageContentStream(mainDocument, myPage)
@@ -47,8 +49,8 @@ data class ReportModel(
         val preTableString = "INSPECTION OF ${title.toUpperCase()} BY UNDERSIGNED ON ${getDate(timestamp)}"
         PDStreamUtils.write(contentStream, preTableString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
         mainDocument.addPage(myPage)
-        val yStart = myPage.artBox.upperRightY * 0.9f
-        val yStartNewPage = myPage.artBox.upperRightY * 0.95f
+        val yStart = myPage.artBox.upperRightY * 0.90f
+        val yStartNewPage = myPage.artBox.upperRightY * 0.93f
         val bottomMargin = 10.0f
         val tableWidth = myPage.mediaBox.width * 0.9f
         val margin = myPage.mediaBox.width * 0.05f
@@ -61,17 +63,22 @@ data class ReportModel(
                 copyToUsers.add(UserEntity[it].designation)
             }
         }
-        val numberOfPages = dataTable.document.numberOfPages
-        yposition = dataTable.document.getPage(numberOfPages-1).artBox.height
+//        val numberOfPages = dataTable.document.numberOfPages
+//        yposition = dataTable.document.getPage(numberOfPages-1)
+        println("FIRST POINT:${yStart - dataTable.headerAndDataHeight - 50f}")
+        println("SECOND POINT: $myPage.artBox.height * 0.4f")
+        yposition = max(yStart - dataTable.headerAndDataHeight - 50f, myPage.artBox.height * 0.4f)
         dataTable.draw()
         println("YPOSITION: $yposition")
         val submitterName = "( ${submitterModel[0].name} )"
-        PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
-        yposition += 10f
-        PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
-        yposition += 10f
-        PDStreamUtils.write(contentStream, "COPY: " + createStringFromCollection(copyToUsers), font, titleFontSize, myPage.artBox.width * 0.1f, yposition + 10f, Color.BLACK)
-
+        PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.68f, yposition, Color.BLACK)
+        yposition -= 20f
+        val diffStringLength = ( submitterName.length.toFloat() - submitterDesignation.length.toFloat() ) * 2.0f
+        println("BASE MARGIN: ${myPage.artBox.width * 0.68f}")
+        println("DIFFERENCE: $diffStringLength")
+        PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.68f + diffStringLength, yposition + 10f, Color.BLACK)
+        yposition -= 20f
+        PDStreamUtils.write(contentStream, "COPY: " + createStringFromCollection(copyToUsers), font, titleFontSize, margin, yposition + 10f, Color.BLACK)
         contentStream.close()
         val file = File(uploadDir, filename)
         Files.createParentDirs(file)
