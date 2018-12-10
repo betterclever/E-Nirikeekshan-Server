@@ -1,6 +1,5 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
-import `in`.indianrail.ncr.enireekshan.model.FileInfo
 import `in`.indianrail.ncr.enireekshan.runVerifed
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.call
