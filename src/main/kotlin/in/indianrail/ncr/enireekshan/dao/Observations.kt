@@ -31,7 +31,7 @@ class Observation(id: EntityID<Int>) : IntEntity(id) {
     var seenBySrDSO by Observations.seenBySrDSO
 
     fun getObservationModel() = ObservationModel(
-            assignedToUser = assignedToUser.map { it.phone.value }, //List of User Phone number i.e. List<Long>
+            assignedToUsers = assignedToUser.map { it.phone.value }, //List of User Phone number i.e. List<Long>
             id = observationID.value,
             reportID = reportID.value,
             status = status,

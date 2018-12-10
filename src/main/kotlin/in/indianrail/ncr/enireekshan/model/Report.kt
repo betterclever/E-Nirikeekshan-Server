@@ -2,6 +2,8 @@ package `in`.indianrail.ncr.enireekshan.model
 
 import `in`.indianrail.ncr.enireekshan.TableWriterInterface
 import `in`.indianrail.ncr.enireekshan.controller.prepareUserModel
+import `in`.indianrail.ncr.enireekshan.createStringFromCollection
+import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.routes.getDateTime
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
@@ -40,7 +42,7 @@ data class ReportModel(
                 usr.prepareUserModel()
             }
         }
-        val submitterDesignation = submitterModel[0].designation
+        val submitterDesignation = submitterModel[0].designation + ", " + submitterModel[0].location
         val preTableString = "INSPECTION OF ${title.toUpperCase()} BY UNDERSIGNED ON ${getDateTime(timestamp)}"
         PDStreamUtils.write(contentStream, preTableString, font, titleFontSize, leftMargin, yposition, Color.BLACK)
         mainDocument.addPage(myPage)
@@ -51,8 +53,12 @@ data class ReportModel(
         val margin = myPage.mediaBox.width * 0.05f
         var dataTable = BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, mainDocument, myPage, true, true)
         dataTable = this.observations[0].writeHeaderToPDF(dataTable)
+        var copyToUsers = mutableSetOf<String>()
         this.observations.forEachIndexed { index, observationModel ->
             dataTable = observationModel.writeTableToPDF(dataTable, index)
+            observationModel.assignedToUsers.forEach{
+                copyToUsers.add(UserEntity[it].designation)
+            }
         }
         val numberOfPages = dataTable.document.numberOfPages
         yposition = dataTable.document.getPage(numberOfPages).artBox.height
@@ -61,6 +67,8 @@ data class ReportModel(
         PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
         yposition += 10f
         PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.9f, yposition + 10f, Color.BLACK)
+        yposition += 10f
+        PDStreamUtils.write(contentStream, "COPY: " + createStringFromCollection(copyToUsers), font, titleFontSize, myPage.artBox.width * 0.1f, yposition + 10f, Color.BLACK)
         contentStream.close()
         val file = File(uploadDir, filename)
         Files.createParentDirs(file)
@@ -89,3 +97,4 @@ data class ReportCreateModel(
         val observations: List<ObservationCreateModel>,
         val title: String
 )
+

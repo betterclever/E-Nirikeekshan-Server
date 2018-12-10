@@ -17,9 +17,11 @@ class ReportsController{
     }
 
     fun addReport(report: ReportCreateModel) = transaction {
+        println(report)
         val newReportID = Reports.insertAndGetId {
             it[submittedBy] = EntityID(report.submittedBy, Users)
             it[timestamp] = report.timestamp
+            it[title] = report.title
         }
         val observationIDList = ArrayList<Int>()
         val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
@@ -35,13 +37,15 @@ class ReportsController{
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
             }
-            observation.assignedToUser.forEach {phone->
+            println(newObservationID)
+            observation.assignedToUsers.forEach { phone->
+                println("INSIDE LOOP FOR ASSIGNES")
                 val entry = ObservationAssignees.insert {
                     it[observationID] = newObservationID
                     it[userID] = EntityID(phone, Users)
                 }
             }
-            val assignedUserTokenList =  Users.select{Users.id inList observation.assignedToUser.map{it}}.map{
+            val assignedUserTokenList =  Users.select{Users.id inList observation.assignedToUsers.map{it}}.map{
                 it[Users.fcmToken]
             }
             notificationUtils.sendNotification(observation.title, mapOf(
@@ -59,7 +63,9 @@ class ReportsController{
             }
             observationIDList.add(newObservationID.value)
         }
-        Report.get(newReportID).getReportModel()
+        val returnVAl = Report[newReportID].getReportModel()
+        println(returnVAl)
+        returnVAl
     }
 
     fun getReportsByID(id: Int) = transaction {

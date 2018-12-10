@@ -38,30 +38,18 @@ class ObservationController {
             it[sender] = EntityID(senderID, Users)
             it[timestamp] = messageModel.timestamp
         }
-        val sentByUser =  Users.select{Users.id eq senderID}.map{
+        val sentByUser =  Users.select{ Users.id eq senderID}.map{
             it.prepareUserModel()
         }
-        val userAssignedForObservation = Observation[messageModel.observationID].assignedToUser.map{ it.phone.value}
-        val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq  messageModel.observationID}.map{
-            it[Reports.submittedBy].value
-        }[0]
-        var assignedUserTokenList = mutableListOf<String?>()
-        userAssignedForObservation.forEach {
-            if (it != sentByUser[0].phone) {
-                assignedUserTokenList.add(UserEntity[it].fcmToken)
-            }
-        }
-        if(observationCreatedByUser != sentByUser[0].phone)
-            assignedUserTokenList.add(UserEntity[observationCreatedByUser].fcmToken)
-
-        println("USER TOKEN LIST: $assignedUserTokenList")
-        if(assignedUserTokenList[0] != null) {
-            notificationUtils.sendNotification(messageModel.message, mapOf(
-                    "sentBy" to sentByUser[0].name,
-                    "sentByDepartment" to sentByUser[0].department,
-                    "sentByLocation" to sentByUser[0].location
-            ), assignedUserTokenList)
-        }
+        val messageData = mapOf(
+                "sentBy" to sentByUser[0].name,
+                "sentByDepartment" to sentByUser[0].department,
+                "sentByLocation" to sentByUser[0].location
+        )
+        notificationUtils.sendNotificationForEvent(EntityID(messageModel.observationID, Observations),
+                senderID,
+                messageModel.message,
+                messageData)
         newMessgaeID.value
     }
 
@@ -79,7 +67,7 @@ class ObservationController {
         } else null
     }
 
-    fun updateObservationStatus(id: Int, status: String) {
+    fun updateObservationStatus(id: Int, status: String, senderID: Long) {
         // validate status
         return transaction {
             Observations.update({
@@ -87,15 +75,8 @@ class ObservationController {
             }) {
                 it[Observations.status] = status
             }
-            val assignedUserTokenList =  (Observations innerJoin Users).select{(Observations.id eq id)}.map{
-                it[Users.fcmToken]
-            }
-            val assignedObservation =  (Observations).select{(Observations.id eq id)}.map{
-                it[Observations.title]
-            }
-
-            notificationUtils.sendNotification("Status Update: " + assignedObservation[0], mapOf(
-            ), assignedUserTokenList)
+            val messageString = "Status changed  to $status by ${UserEntity[senderID].name}"
+            notificationUtils.sendNotificationForEvent(EntityID(id, Observations), senderID, messageString)
         }
     }
 
@@ -123,7 +104,7 @@ fun ResultRow.prepareObservationModel() = ObservationModel(
         status = this[Observations.status],
         reportID = this[Reports.id].value,
         timestamp = this[Observations.timestamp],
-        assignedToUser = Observation[this[Observations.id]].assignedToUser.map { it.phone.value },
+        assignedToUsers = Observation[this[Observations.id]].assignedToUser.map { it.phone.value },
         submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
         mediaItems = MediaItems.select { MediaItems.observationId eq this@prepareObservationModel[Observations.id].value }.map {
             MediaItemsModel(it[MediaItems.filePath])

@@ -3,6 +3,7 @@ package `in`.indianrail.ncr.enireekshan.routes
 import `in`.indianrail.ncr.enireekshan.controller.ObservationController
 import `in`.indianrail.ncr.enireekshan.model.ObservationCreateModel
 import `in`.indianrail.ncr.enireekshan.model.MessageCreateModel
+import `in`.indianrail.ncr.enireekshan.model.ObservationStatusUpdateModel
 import `in`.indianrail.ncr.enireekshan.runVerifed
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.application
@@ -97,12 +98,14 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
 
     patch("/{id}/updateStatus") {
         runVerifed(firebaseAuth, call) {
-            val newStatus = call.receive<String>()
-            val idS = call.parameters["id"]
-            if (idS != null) {
+            val statusUpdateModel = call.receive<ObservationStatusUpdateModel>()
+            val status = statusUpdateModel.status
+            val senderID = statusUpdateModel.senderID
+            val observationID = call.parameters["id"]
+            if (observationID != null) {
                 val response = try {
-                    val id = idS.toInt()
-                    observationController.updateObservationStatus(id, newStatus)
+                    val observationID = observationID.toInt()
+                    observationController.updateObservationStatus(observationID, status, senderID)
                     "Success"
                 } catch (exception: Exception) {
                     exception.printStackTrace()
