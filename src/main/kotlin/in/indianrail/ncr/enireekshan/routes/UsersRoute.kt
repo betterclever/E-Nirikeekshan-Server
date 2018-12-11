@@ -95,7 +95,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
     }
     post("{id}/updateFCMToken") {
         runVerifed(firebaseAuth, call) {
-            val token = call.receive<String>()
+            val token = call.receive<String>().substringAfter("\"").substringBefore("\"")
             val id = call.parameters["id"]
             if (id != null) {
                 call.respond(userController.updateFCMToken(id.toLong(), token))

@@ -5,6 +5,7 @@ import `in`.indianrail.ncr.enireekshan.dao.*
 import `in`.indianrail.ncr.enireekshan.model.MessageModel
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
+import com.google.firebase.messaging.Notification
 import org.jetbrains.exposed.dao.EntityID
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.select
@@ -17,13 +18,14 @@ class NotificationUtils {
         val messages = recipients.map {
             Message.builder()
                     .putAllData(messageData)
-                    .putData("title", messageTitle)
+                    .setNotification(Notification(messageTitle, "asd"))
                     .setToken(it)
                     .build()
         }
 
         messages.forEach {
-            messagingInstance.sendAsync(it)
+            val id = messagingInstance.sendAsync(it).get()
+            println(id)
         }
     }
 
