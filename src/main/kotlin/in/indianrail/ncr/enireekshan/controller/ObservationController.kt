@@ -41,14 +41,16 @@ class ObservationController {
         val sentByUser =  Users.select{ Users.id eq senderID}.map{
             it.prepareUserModel()
         }
+        val notificationMap = mapOf("title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
+                "body" to messageModel.message)
         val messageData = mapOf(
-                "sentBy" to sentByUser[0].name,
-                "sentByDepartment" to sentByUser[0].department,
-                "sentByLocation" to sentByUser[0].location
+                "intentId" to messageModel.observationID.toString(),
+                "title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
+                "body" to messageModel.message
         )
         notificationUtils.sendNotificationForEvent(messageModel.observationID,
                 senderID,
-                messageModel.message,
+                notificationMap,
                 messageData)
         newMessgaeID.value
     }
@@ -75,8 +77,14 @@ class ObservationController {
             }) {
                 it[Observations.status] = status
             }
-            val messageString = "Status changed  to $status by ${UserEntity[senderID].name}"
-            notificationUtils.sendNotificationForEvent(id, senderID, messageString)
+            val notificationMap = mapOf( "title" to "Observation status changed to $status by " +
+                    "${UserEntity[senderID].designation}, ${UserEntity[senderID].location}",
+                        "body" to Observation[id].title)
+            val dataMap = mapOf("intentID" to id.toString(),
+                    "title" to "Observation status changed to $status by " +
+                            "${UserEntity[senderID].designation}, ${UserEntity[senderID].location}",
+                    "body" to Observation[id].title)
+            notificationUtils.sendNotificationForEvent(id, senderID, notificationMap, dataMap)
         }
     }
 

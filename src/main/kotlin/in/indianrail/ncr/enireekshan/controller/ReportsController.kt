@@ -27,11 +27,8 @@ class ReportsController{
         val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
             it.prepareUserModel()
         }
-        val messageData = mapOf(
-                "sentBy" to sentByUser[0].name,
-                "sentByDepartment" to sentByUser[0].department,
-                "sentByLocation" to sentByUser[0].location
-        )
+
+        var assignedUser = mutableSetOf<Long>()
         report.observations.forEach{ observation ->
             val newObservationID = Observations.insertAndGetId {
                 it[title] = observation.title
@@ -42,12 +39,12 @@ class ReportsController{
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
             }
-
             observation.assignedToUsers.forEach { phone->
                 val entry = ObservationAssignees.insert {
                     it[observationID] = newObservationID
                     it[userID] = EntityID(phone, Users)
                 }
+                assignedUser.add(phone)
             }
             observation.mediaLinks.forEach{mediaLink ->
                 val newMediaID = MediaItems.insertAndGetId {
@@ -56,11 +53,22 @@ class ReportsController{
                 }
             }
             observationIDList.add(newObservationID.value)
-            notificationUtils.sendNotificationForEvent(newObservationID.value,
-                    sentByUser[0].phone,
-                    "New Observation: " + observation.title,
-                    messageData)
-        }   
+        }
+        val assignedUserTokenList = assignedUser.map {
+            UserEntity[it].fcmToken
+        }
+        val notificationData = mapOf(
+                "title" to "${sentByUser[0].designation}, ${sentByUser[0].location} tagged you in an Inspection",
+                "body" to report.title
+        )
+        val messageData = mapOf(
+                "intentID" to newReportID.value.toString(),
+                "title" to "${sentByUser[0].designation}, ${sentByUser[0].location} tagged you in an Inspection",
+                "body" to report.title
+        )
+        notificationUtils.sendNotification(notificationData,
+                messageData,
+                assignedUserTokenList)
         Report[newReportID].getReportModel()
     }
 

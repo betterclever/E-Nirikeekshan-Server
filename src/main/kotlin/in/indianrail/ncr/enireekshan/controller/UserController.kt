@@ -43,10 +43,10 @@ class UserController {
 
     fun getDepartments(location: String): List<String> = transaction {
         Users.slice(Users.department, Users.location)
-                .select({
+                .select {
                     (Users.location eq location) and
                             (Users.assignable eq true)
-                })
+                }
                 .withDistinct(true)
                 .map {
                     it[Users.department]
@@ -56,10 +56,10 @@ class UserController {
 
     fun getDesignations(department: String, location: String): List<String> = transaction {
         Users.slice(Users.designation)
-                .select({
+                .select {
                     (Users.location eq location) and (Users.department eq department) and
                             (Users.assignable eq true)
-                })
+                }
                 .withDistinct(true)
                 .map {
                     it[Users.designation]
