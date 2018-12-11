@@ -26,13 +26,14 @@ class NotificationUtils {
         }
     }
 
-    fun sendNotificationForEvent(observationID: EntityID<Int>,
+    fun sendNotificationForEvent(observationId: Int,
                                  senderID : Long,
                                  message: String,
                                  messageData : Map<String, String> = emptyMap()){
         val sentByUser =  Users.select{ Users.id eq senderID}.map{
             it.prepareUserModel()
         }
+        val observationID = EntityID(observationId, Observations)
         val userAssignedForObservation = Observation[observationID].assignedToUser.map{ it.phone.value}
         val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq observationID}.map{
             it[Reports.submittedBy].value

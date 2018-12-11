@@ -27,6 +27,11 @@ class ReportsController{
         val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
             it.prepareUserModel()
         }
+        val messageData = mapOf(
+                "sentBy" to sentByUser[0].name,
+                "sentByDepartment" to sentByUser[0].department,
+                "sentByLocation" to sentByUser[0].location
+        )
         report.observations.forEach{ observation ->
             val newObservationID = Observations.insertAndGetId {
                 it[title] = observation.title
@@ -44,16 +49,6 @@ class ReportsController{
                     it[userID] = EntityID(phone, Users)
                 }
             }
-            val assignedUserTokenList =  Users.select{Users.id inList observation.assignedToUsers.map{it}}.map{
-                it[Users.fcmToken]
-            }
-            notificationUtils.sendNotification(observation.title, mapOf(
-                    "type" to "New Assignment",
-                    "sentBy" to sentByUser[0].name,
-                    "sentByDepartment" to sentByUser[0].department,
-                    "sentByLocation" to sentByUser[0].location
-            ), assignedUserTokenList)
-
             observation.mediaLinks.forEach{mediaLink ->
                 val newMediaID = MediaItems.insertAndGetId {
                     it[observationId] = EntityID(newObservationID.value, Observations)
@@ -61,9 +56,12 @@ class ReportsController{
                 }
             }
             observationIDList.add(newObservationID.value)
-        }
+            notificationUtils.sendNotificationForEvent(newObservationID.value,
+                    sentByUser[0].phone,
+                    "New Observation: " + observation.title,
+                    messageData)
+        }   
         Report[newReportID].getReportModel()
-
     }
 
     fun getReportsByID(id: Int) = transaction {

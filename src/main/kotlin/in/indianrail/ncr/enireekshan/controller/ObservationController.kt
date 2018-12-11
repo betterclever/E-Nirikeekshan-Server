@@ -46,7 +46,7 @@ class ObservationController {
                 "sentByDepartment" to sentByUser[0].department,
                 "sentByLocation" to sentByUser[0].location
         )
-        notificationUtils.sendNotificationForEvent(EntityID(messageModel.observationID, Observations),
+        notificationUtils.sendNotificationForEvent(messageModel.observationID,
                 senderID,
                 messageModel.message,
                 messageData)
@@ -76,7 +76,7 @@ class ObservationController {
                 it[Observations.status] = status
             }
             val messageString = "Status changed  to $status by ${UserEntity[senderID].name}"
-            notificationUtils.sendNotificationForEvent(EntityID(id, Observations), senderID, messageString)
+            notificationUtils.sendNotificationForEvent(id, senderID, messageString)
         }
     }
 
