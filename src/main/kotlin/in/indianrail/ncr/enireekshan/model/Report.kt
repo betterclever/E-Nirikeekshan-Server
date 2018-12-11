@@ -6,7 +6,6 @@ import `in`.indianrail.ncr.enireekshan.createStringFromCollection
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import `in`.indianrail.ncr.enireekshan.routes.getDate
-import `in`.indianrail.ncr.enireekshan.routes.getDateTime
 import `in`.indianrail.ncr.enireekshan.routes.uploadDir
 import be.quodlibet.boxable.BaseTable
 import be.quodlibet.boxable.utils.PDStreamUtils
@@ -21,8 +20,6 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Color
 import java.io.File
 import java.lang.Float.max
-import java.lang.Float.min
-
 
 data class ReportModel(
         val id: Int,
@@ -63,19 +60,12 @@ data class ReportModel(
                 copyToUsers.add(UserEntity[it].designation)
             }
         }
-//        val numberOfPages = dataTable.document.numberOfPages
-//        yposition = dataTable.document.getPage(numberOfPages-1)
-        println("FIRST POINT:${yStart - dataTable.headerAndDataHeight - 50f}")
-        println("SECOND POINT: $myPage.artBox.height * 0.4f")
         yposition = max(yStart - dataTable.headerAndDataHeight - 50f, myPage.artBox.height * 0.4f)
         dataTable.draw()
-        println("YPOSITION: $yposition")
         val submitterName = "( ${submitterModel[0].name} )"
         PDStreamUtils.write(contentStream, submitterName, font, titleFontSize, myPage.artBox.width * 0.68f, yposition, Color.BLACK)
         yposition -= 20f
         val diffStringLength = ( submitterName.length.toFloat() - submitterDesignation.length.toFloat() ) * 2.0f
-        println("BASE MARGIN: ${myPage.artBox.width * 0.68f}")
-        println("DIFFERENCE: $diffStringLength")
         PDStreamUtils.write(contentStream, submitterDesignation, font, titleFontSize, myPage.artBox.width * 0.68f + diffStringLength, yposition + 10f, Color.BLACK)
         yposition -= 20f
         PDStreamUtils.write(contentStream, "COPY: " + createStringFromCollection(copyToUsers), font, titleFontSize, margin, yposition + 10f, Color.BLACK)

@@ -11,6 +11,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ImportUserRecord
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.application.*
@@ -79,31 +80,31 @@ fun Application.main() {
     }
     initDB()
     /* Importing Users using firebase Auth */
-//    transaction {
-//        val authInstance = FirebaseAuth.getInstance()
-//        val users = mutableListOf<ImportUserRecord>()
-//
-//        UserEntity.all().forEach {
-//            if(users.size == 999) {
-//                val result = authInstance.importUsers(users)
-//                println("Import ${users.size} Users")
-//                println(result)
-//                users.clear()
-//            } else {
-//                users.add(ImportUserRecord.builder()
-//                        .setUid(it.phone.value.toString())
-//                        .setPhoneNumber("+91${it.phone.value}")
-//                        .setDisplayName(it.name)
-//                        .build()
-//                )
-//            }
-//        }
+    transaction {
+        val authInstance = FirebaseAuth.getInstance()
+        val users = mutableListOf<ImportUserRecord>()
 
-//        println("Import ${users.size} Users")
-//        val result = authInstance.importUsers(users)
-//        println(result)
-//        users.clear()
-//    }
+        UserEntity.all().forEach {
+            if(users.size == 999) {
+                val result = authInstance.importUsers(users)
+                println("Import ${users.size} Users")
+                println(result)
+                users.clear()
+            } else {
+                users.add(ImportUserRecord.builder()
+                        .setUid(it.phone.value.toString())
+                        .setPhoneNumber("+91${it.phone.value}")
+                        .setDisplayName(it.name)
+                        .build()
+                )
+            }
+        }
+
+        println("Import ${users.size} Users")
+        val result = authInstance.importUsers(users)
+        println(result)
+        users.clear()
+    }
     install(Routing) {
         route("/api") {
             route("/users") {
