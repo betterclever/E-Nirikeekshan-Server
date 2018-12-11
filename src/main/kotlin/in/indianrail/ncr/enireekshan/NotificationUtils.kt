@@ -14,11 +14,12 @@ class NotificationUtils {
 
     fun sendNotification(messageTitle: String, messageData: Map<String, String>, recipients: List<String?>) {
 
-        val messages = recipients.map { Message.builder()
-                .putAllData(messageData)
-                .putData("title",messageTitle)
-                .setToken(it)
-                .build()
+        val messages = recipients.map {
+            Message.builder()
+                    .putAllData(messageData)
+                    .putData("title", messageTitle)
+                    .setToken(it)
+                    .build()
         }
 
         messages.forEach {
@@ -27,29 +28,29 @@ class NotificationUtils {
     }
 
     fun sendNotificationForEvent(observationId: Int,
-                                 senderID : Long,
+                                 senderID: Long,
                                  message: String,
-                                 messageData : Map<String, String> = emptyMap()){
-        val sentByUser =  Users.select{ Users.id eq senderID}.map{
-            it.prepareUserModel()
-        }
+                                 messageData: Map<String, String> = emptyMap()) {
+        val sentByUser = UserEntity[senderID]
         val observationID = EntityID(observationId, Observations)
-        val userAssignedForObservation = Observation[observationID].assignedToUser.map{ it.phone.value}
-        val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq observationID}.map{
+        val userAssignedForObservation = Observation[observationID].assignedToUser.map { it.phone.value }
+        val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq observationID }.map {
             it[Reports.submittedBy].value
         }[0]
-        var assignedUserTokenList = mutableListOf<String?>()
-        userAssignedForObservation.forEach {
-            if (it != sentByUser[0].phone) {
-                assignedUserTokenList.add(UserEntity[it].fcmToken)
-            }
-        }
-        if(observationCreatedByUser != sentByUser[0].phone)
-            assignedUserTokenList.add(UserEntity[observationCreatedByUser].fcmToken)
+        val assignable = with(userAssignedForObservation
+                .filter { it != sentByUser.phone.value }
+                .map { UserEntity[it].fcmToken }){
 
-        println("USER TOKEN LIST: $assignedUserTokenList")
-        if(assignedUserTokenList[0] != null) {
-            sendNotification(message, messageData, assignedUserTokenList)
+            if (observationCreatedByUser != sentByUser.phone.value)
+                plus(UserEntity[observationCreatedByUser].fcmToken)
+            else
+                this
+        }.filter { it != null }
+
+        println("USER TOKEN LIST: $assignable")
+        assignable.filter { it != null }
+        if (assignable[0] != null) {
+            sendNotification(message, messageData, assignable)
         }
     }
 }
