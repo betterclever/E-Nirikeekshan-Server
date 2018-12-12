@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 val notificationUtils = NotificationUtils()
 
-class ReportsController{
+class ReportsController {
     fun getAllReports(): List<ReportModel> = transaction {
         Reports.selectAll().orderBy(Reports.timestamp, isAsc = false).map {
             it.prepareReportModel()
@@ -24,12 +24,12 @@ class ReportsController{
             it[title] = report.title
         }
         val observationIDList = ArrayList<Int>()
-        val sentByUser =  Users.select{Users.id eq report.submittedBy}.map{
+        val sentByUser = Users.select { Users.id eq report.submittedBy }.map {
             it.prepareUserModel()
         }
 
-        var assignedUser = mutableSetOf<Long>()
-        report.observations.forEach{ observation ->
+        val assignedUser = mutableSetOf<Long>()
+        report.observations.forEach { observation ->
             val newObservationID = Observations.insertAndGetId {
                 it[title] = observation.title
                 it[status] = STATUS_UNSEEN
@@ -39,14 +39,14 @@ class ReportsController{
                 it[seenByPCSO] = false
                 it[seenBySrDSO] = false
             }
-            observation.assignedToUsers.forEach { phone->
+            observation.assignedToUsers.forEach { phone ->
                 val entry = ObservationAssignees.insert {
                     it[observationID] = newObservationID
                     it[userID] = EntityID(phone, Users)
                 }
                 assignedUser.add(phone)
             }
-            observation.mediaLinks.forEach{mediaLink ->
+            observation.mediaLinks.forEach { mediaLink ->
                 val newMediaID = MediaItems.insertAndGetId {
                     it[observationId] = EntityID(newObservationID.value, Observations)
                     it[filePath] = mediaLink
@@ -77,16 +77,27 @@ class ReportsController{
         report.getReportModel()
     }
 
-    fun getReportsByUser(id: Long) = transaction {
-        Reports.select{Reports.submittedBy eq id}.map {
+    fun getReportsByUser(phone: Long, timestamp: Long?) = transaction {
+        Reports.select {
+            if (timestamp == null) (Reports.submittedBy eq phone)
+            else (Reports.submittedBy eq phone) and (Reports.timestamp greater timestamp)
+        }.map {
             it[Reports.id].value
         }.map { Report[it].getReportModel() }
     }
+
+    fun getAllObservations(id: Int) = transaction {
+        val reportID = EntityID(id, Reports)
+        Observations.select {
+            Observations.reportID eq reportID
+        }.map { it.prepareObservationModel() }
+    }
+
     private fun ResultRow.prepareReportModel() = ReportModel(
             id = this[Reports.id].value,
             submittedBy = this[Reports.submittedBy].value,
             timestamp = this[Reports.timestamp],
-            observations = (Observations innerJoin Reports).select { Observations.reportID eq this@prepareReportModel[Reports.id]}.map{
+            observations = (Observations innerJoin Reports).select { Observations.reportID eq this@prepareReportModel[Reports.id] }.map {
                 it.prepareObservationModel()
             },
             title = this[Reports.title]

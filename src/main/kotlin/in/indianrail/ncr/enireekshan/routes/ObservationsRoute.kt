@@ -1,10 +1,9 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
 import `in`.indianrail.ncr.enireekshan.controller.ObservationController
-import `in`.indianrail.ncr.enireekshan.model.ObservationCreateModel
 import `in`.indianrail.ncr.enireekshan.model.MessageCreateModel
 import `in`.indianrail.ncr.enireekshan.model.ObservationStatusUpdateModel
-import `in`.indianrail.ncr.enireekshan.runVerifed
+import `in`.indianrail.ncr.enireekshan.runVerified
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.application
 import io.ktor.application.call
@@ -21,7 +20,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
     val observationController = ObservationController()
 
     get("/markedTo/{userID}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val userID = call.parameters["userID"]
             if (userID != null) {
                 try {
@@ -34,7 +33,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
         }
     }
     get("/submittedBy/{userID}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val userID = call.parameters["userID"]
             if (userID != null) {
                 try {
@@ -49,7 +48,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
     }
 
     get("/{id}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val idS = call.parameters["id"]
             if (idS != null) {
                 val response = try {
@@ -67,7 +66,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
     }
 
     post("/{id}/messages") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val idS = call.parameters["id"]
             val message = call.receive<MessageCreateModel>()
             if (idS != null) {
@@ -82,7 +81,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
         }
     }
     get("/{id}/messages") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val idS = call.parameters["id"]
             if(idS!=null) {
                 try {
@@ -97,15 +96,14 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
     }
 
     patch("/{id}/updateStatus") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {phone->
             val statusUpdateModel = call.receive<ObservationStatusUpdateModel>()
             val status = statusUpdateModel.status
-            val senderID = statusUpdateModel.senderID
             val observationID = call.parameters["id"]
             if (observationID != null) {
                 val response = try {
                     val observationID = observationID.toInt()
-                    observationController.updateObservationStatus(observationID, status, senderID)
+                    observationController.updateObservationStatus(observationID, status, phone)
                     "Success"
                 } catch (exception: Exception) {
                     exception.printStackTrace()

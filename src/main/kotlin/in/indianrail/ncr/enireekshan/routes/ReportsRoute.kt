@@ -2,7 +2,7 @@ package `in`.indianrail.ncr.enireekshan.routes
 
 import `in`.indianrail.ncr.enireekshan.model.ReportCreateModel
 import `in`.indianrail.ncr.enireekshan.reportsController
-import `in`.indianrail.ncr.enireekshan.runVerifed
+import `in`.indianrail.ncr.enireekshan.runVerified
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
@@ -16,22 +16,22 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Route.reports(firebaseAuth: FirebaseAuth){
+fun Route.reports(firebaseAuth: FirebaseAuth) {
     get("/") {
-        runVerifed(firebaseAuth, this.call) {
+        runVerified(firebaseAuth, this.call) {
             call.respond(reportsController.getAllReports())
         }
     }
     post("/new") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             println(call.request)
             val report = call.receive<ReportCreateModel>()
             println(report)
             call.respond(reportsController.addReport(report))
         }
     }
-    get("/{id}"){
-        runVerifed(firebaseAuth, call) {
+    get("/{id}") {
+        runVerified(firebaseAuth, call) {
             val idS = call.parameters["id"]
             if (idS != null) {
                 val response = try {
@@ -41,24 +41,24 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
                     exception.printStackTrace()
                     null
                 }
-                if(response!=null) {
+                if (response != null) {
                     call.respond(response)
                 } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
             }
         }
     }
-    get("/{id}/pdf"){
-        runVerifed(firebaseAuth, call) {
-            val idS = call.parameters["id"]
-            if (idS != null) {
+    get("/{id}/pdf") {
+        runVerified(firebaseAuth, call) {
+            val reportID = call.parameters["id"]
+            if (reportID != null) {
                 val response = try {
-                    val id = idS.toInt()
-                    reportsController.getReportsByID(id)
+                    val reportID = reportID.toInt()
+                    reportsController.getReportsByID(reportID)
                 } catch (exception: Exception) {
                     exception.printStackTrace()
                     null
                 }
-                if(response!=null) {
+                if (response != null) {
                     val filePath = response.writeReportToPDF()
                     call.respondFile(File(filePath))
                 } else
@@ -66,18 +66,33 @@ fun Route.reports(firebaseAuth: FirebaseAuth){
             }
         }
     }
-    get("/getReportsByUser/{userId}"){
-        runVerifed(firebaseAuth, call) {
-            val uid = call.parameters["userId"]
-            if (uid != null) {
+    get("/getReportsByUser") {
+        runVerified(firebaseAuth, call) {phone->
+            val response = try {
+                val timeStamp = call.parameters["afterTime"]
+                reportsController.getReportsByUser(phone, timeStamp?.toLong())
+            } catch (exception: Exception) {
+                exception.printStackTrace()
+                null
+            }
+            if (response != null) {
+                call.respond(response)
+            } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+        }
+    }
+
+    get("{reportID}/getAllObservations/") {
+        runVerified(firebaseAuth, call) {
+            val reportId = call.parameters["reportID"]
+            if (reportId != null) {
                 val response = try {
-                    val uid = uid.toLong()
-                    reportsController.getReportsByUser(uid)
+                    val uid = reportId.toInt()
+                    reportsController.getAllObservations(uid)
                 } catch (exception: Exception) {
                     exception.printStackTrace()
                     null
                 }
-                if(response!=null) {
+                if (response != null) {
                     call.respond(response)
                 } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
             }
@@ -94,6 +109,7 @@ fun getDateTime(s: Long): String? {
         e.toString()
     }
 }
+
 fun getDate(s: Long): String? {
     return try {
         val sdf = SimpleDateFormat("MM/dd/yyyy")

@@ -1,7 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
 import `in`.indianrail.ncr.enireekshan.model.UserModel
-import `in`.indianrail.ncr.enireekshan.runVerifed
+import `in`.indianrail.ncr.enireekshan.runVerified
 import `in`.indianrail.ncr.enireekshan.userController
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.call
@@ -14,12 +14,12 @@ import io.ktor.routing.post
 
 fun Route.users(firebaseAuth: FirebaseAuth){
     get("/locations") {
-        runVerifed(firebaseAuth, this.call) {
+        runVerified(firebaseAuth, this.call) {
             call.respond(userController.getLocations())
         }
     }
     get("/{location}/departments") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val location = call.parameters["location"]
             if (location != null) {
                 call.respond(userController.getDepartments(location))
@@ -29,7 +29,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
         }
     }
     get("/{location}/{department}/designations") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val location = call.parameters["location"]
             val department = call.parameters["department"]
             if (location != null && department != null) {
@@ -40,23 +40,23 @@ fun Route.users(firebaseAuth: FirebaseAuth){
         }
     }
     get("/") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             call.respond(userController.getAllUsers())
         }
     }
     get("/assignable"){
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             call.respond(userController.getAllVerifiedUsers())
         }
     }
     post("/") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val user = call.receive<UserModel>()
             call.respond(userController.addUser(user))
         }
     }
     get("/{id}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val userID = call.parameters["id"]
             val result = if(userID!=null) {
                 try {
@@ -76,7 +76,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
     }
 
     post("/{id}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val userID = call.parameters["id"]
             val result = if(userID!=null) {
                 try {
@@ -94,7 +94,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
         }
     }
     post("{id}/updateFCMToken") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val token = call.receive<String>().substringAfter("\"").substringBefore("\"")
             val id = call.parameters["id"]
             if (id != null) {

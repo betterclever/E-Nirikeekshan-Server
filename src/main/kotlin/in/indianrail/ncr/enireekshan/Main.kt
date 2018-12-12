@@ -39,7 +39,7 @@ fun initDB() {
     }
 }
 
-suspend inline fun runVerifed(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
+suspend inline fun runVerified(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
 //    try {
 //        val authToken = call.request.headers["Authorization"]
 //        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()

@@ -1,6 +1,6 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
-import `in`.indianrail.ncr.enireekshan.runVerifed
+import `in`.indianrail.ncr.enireekshan.runVerified
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.call
 import io.ktor.http.content.PartData
@@ -19,7 +19,7 @@ val uploadDir = File("/home/enireekshan/server-uploads")
 fun Route.files(firebaseAuth: FirebaseAuth){
     val baseDir = File("/home/enireekshan/server-uploads")
     get("/{name}") {
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
             val name = call.parameters["name"]
             if (name != null) {
                 call.respondFile(baseDir, name)
@@ -29,7 +29,7 @@ fun Route.files(firebaseAuth: FirebaseAuth){
 
     post("/new") {
 
-        runVerifed(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {
 
             val multipart = call.receiveMultipart()
             var title = ""
