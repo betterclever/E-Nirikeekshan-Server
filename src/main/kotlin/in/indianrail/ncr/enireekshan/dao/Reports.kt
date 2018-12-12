@@ -23,7 +23,7 @@ class Report(id: EntityID<Int>) : IntEntity(id) {
 
     fun getReportModel() = ReportModel(
             id = ReportID.value,
-            submittedBy = submittedBy.phone.value,
+            submittedBy = submittedBy.getUserModel(),
             observations = observations.map{ it.getObservationModel() },
             timestamp =  timestamp,
             title = title

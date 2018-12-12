@@ -23,11 +23,12 @@ import java.lang.Float.max
 
 data class ReportModel(
         val id: Int,
-        val submittedBy: Long,
+        val submittedBy: UserModel,
         val observations: List<ObservationModel>,
         val timestamp: Long,
         val title: String
 ) : TableWriterInterface{
+
     override fun writeReportToPDF() : String = transaction{
         val filename = "report-$id.pdf"
         val myPage = PDPage(PDRectangle.A4)
@@ -38,7 +39,7 @@ data class ReportModel(
         val titleFontSize = 10.0f
         var yposition = myPage.artBox.height * 0.95f
         val submitterModel = transaction {
-            `in`.indianrail.ncr.enireekshan.dao.Users.select { Users.id eq submittedBy }.map { usr ->
+            `in`.indianrail.ncr.enireekshan.dao.Users.select { Users.id eq submittedBy.phone }.map { usr ->
                 usr.prepareUserModel()
             }
         }
@@ -90,7 +91,6 @@ data class ReportModel(
         return baseTable
     }
 }
-
 data class ReportCreateModel(
         val submittedBy: Long,
         val timestamp: Long,

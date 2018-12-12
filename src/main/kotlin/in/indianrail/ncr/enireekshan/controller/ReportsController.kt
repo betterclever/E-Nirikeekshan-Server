@@ -104,7 +104,7 @@ class ReportsController {
 
     private fun ResultRow.prepareReportModel() = ReportModel(
             id = this[Reports.id].value,
-            submittedBy = this[Reports.submittedBy].value,
+            submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
             timestamp = this[Reports.timestamp],
             observations = (Observations innerJoin Reports).select { Observations.reportID eq this@prepareReportModel[Reports.id] }.map {
                 it.prepareObservationModel()
