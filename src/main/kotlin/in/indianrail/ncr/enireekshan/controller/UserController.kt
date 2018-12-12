@@ -1,6 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.controller
 
 import `in`.indianrail.ncr.enireekshan.dao.*
+import `in`.indianrail.ncr.enireekshan.model.ReportModel
 import `in`.indianrail.ncr.enireekshan.model.UserModel
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -124,5 +125,11 @@ class UserController {
                 assignable = it.assignable
             }
         }.getUserModel()
+    }
+
+    fun getAllAssignedReports(phone: Long): List<ReportModel> = transaction {
+        (Observations innerJoin  Reports). select { Reports.submittedBy eq phone }.map{
+            Report[it[Reports.id]].getReportModel()
+        }
     }
 }

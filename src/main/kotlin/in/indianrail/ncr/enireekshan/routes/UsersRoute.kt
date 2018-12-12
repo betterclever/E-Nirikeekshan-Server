@@ -94,12 +94,25 @@ fun Route.users(firebaseAuth: FirebaseAuth){
         }
     }
     post("{id}/updateFCMToken") {
-        runVerified(firebaseAuth, call) {
+        runVerified(firebaseAuth, call) {phone->
             val token = call.receive<String>().substringAfter("\"").substringBefore("\"")
-            val id = call.parameters["id"]
-            if (id != null) {
-                call.respond(userController.updateFCMToken(id.toLong(), token))
+//            val id = call.parameters["id"]
+            call.respond(userController.updateFCMToken(phone, token))
+        }
+    }
+
+    get("/allAssignedReports"){
+        runVerified(firebaseAuth, call){phone->
+            val response = try{
+                userController.getAllAssignedReports(phone)
+            } catch (e: Exception){
+                println(e.message)
+                null
+            }
+            if(response != null){
+                call.respond(response)
             }
         }
     }
+
 }

@@ -20,6 +20,7 @@ import io.ktor.gson.gson
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.*
+import jdk.nashorn.internal.runtime.Debug
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.createMissingTablesAndColumns
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -40,17 +41,17 @@ fun initDB() {
 }
 
 suspend inline fun runVerified(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
-//    try {
-//        val authToken = call.request.headers["Authorization"]
-//        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
-//        val phone = decodedToken.claims["phone_number"] as String
-//        val phoneNumber = phone.substringAfter("+91").toLong()
-//        if (userController.verifyUser(phoneNumber)) block(phoneNumber) else throw Exception("Unverified User")
-//    } catch (exception: Exception) {
-//        exception.printStackTrace()
-//        call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
-//    }
-    block(1234567890)
+    try {
+        val authToken = call.request.headers["Authorization"]
+        val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
+        val phone = decodedToken.claims["phone_number"] as String
+        val phoneNumber = phone.substringAfter("+91").toLong()
+        if (userController.verifyUser(phoneNumber)) block(phoneNumber) else throw Exception("Unverified User")
+    } catch (exception: Exception) {
+        exception.printStackTrace()
+        call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
+    }
+//    block(1234567890)
 }
 
 fun Application.main() {

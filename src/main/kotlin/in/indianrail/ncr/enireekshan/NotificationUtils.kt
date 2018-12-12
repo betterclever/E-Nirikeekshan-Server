@@ -21,8 +21,12 @@ class NotificationUtils {
         }
 
         messages.forEach {
-            val id = messagingInstance.sendAsync(it).get()
-            println(id)
+            try {
+                val id = messagingInstance.sendAsync(it).get()
+                println(id)
+            }catch(e:Exception){
+                e.printStackTrace()
+            }
         }
     }
 
