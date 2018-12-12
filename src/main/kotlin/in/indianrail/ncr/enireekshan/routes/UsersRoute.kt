@@ -1,6 +1,7 @@
 package `in`.indianrail.ncr.enireekshan.routes
 
 import `in`.indianrail.ncr.enireekshan.model.UserModel
+import `in`.indianrail.ncr.enireekshan.reportsController
 import `in`.indianrail.ncr.enireekshan.runVerified
 import `in`.indianrail.ncr.enireekshan.userController
 import com.google.firebase.auth.FirebaseAuth
@@ -98,24 +99,6 @@ fun Route.users(firebaseAuth: FirebaseAuth){
             val token = call.receive<String>().substringAfter("\"").substringBefore("\"")
 //            val id = call.parameters["id"]
             call.respond(userController.updateFCMToken(phone, token))
-        }
-    }
-
-    get("/{id}/allAssignedReports"){
-        runVerified(firebaseAuth, call){
-            val response = try{
-                val phone = call.parameters["id"]
-                if(phone != null)
-                userController.getAllAssignedReports(phone.toLong())
-                else
-                    null
-            } catch (e: Exception){
-                println(e.message)
-                null
-            }
-            if(response != null){
-                call.respond(response)
-            }
         }
     }
 

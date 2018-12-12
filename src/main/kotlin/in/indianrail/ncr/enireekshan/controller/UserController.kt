@@ -126,12 +126,4 @@ class UserController {
             }
         }.getUserModel()
     }
-
-    fun getAllAssignedReports(phone: Long): List<ReportModel> = transaction {
-        (Reports innerJoin Observations innerJoin  ObservationAssignees).slice(Reports.id).select{
-            ObservationAssignees.userID eq phone
-        }.withDistinct().map{
-            Report[it[Reports.id]].getReportModel()
-        }
-    }
 }

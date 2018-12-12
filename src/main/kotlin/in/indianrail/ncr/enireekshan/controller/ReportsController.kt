@@ -80,10 +80,19 @@ class ReportsController {
     fun getReportsByUser(phone: Long, timestamp: Long?) = transaction {
         Reports.select {
             if (timestamp == null) (Reports.submittedBy eq phone)
-            else (Reports.submittedBy eq phone) and (Reports.timestamp greater timestamp)
-        }.map {
+            else (Reports.submittedBy eq phone) and (Reports.timestamp less timestamp)
+        }.limit(15).orderBy(Reports.timestamp,false).map {
             it[Reports.id].value
         }.map { Report[it].getReportModel() }
+    }
+
+    fun getAllAssignedReports(phone: Long, timestamp: Long?): List<ReportModel> = transaction {
+        (Reports innerJoin Observations innerJoin  ObservationAssignees).slice(Reports.id).select{
+            if (timestamp == null) (ObservationAssignees.userID eq phone)
+            else ObservationAssignees.userID eq phone and (Reports.timestamp less timestamp)
+        }.withDistinct().map{
+            Report[it[Reports.id]].getReportModel()
+        }
     }
 
     fun getAllObservations(id: Int) = transaction {

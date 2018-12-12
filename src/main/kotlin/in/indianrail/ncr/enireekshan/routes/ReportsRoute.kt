@@ -66,7 +66,7 @@ fun Route.reports(firebaseAuth: FirebaseAuth) {
             }
         }
     }
-    get("/getReportsByUser") {
+    get("/sent") {
         runVerified(firebaseAuth, call) {phone->
             val response = try {
                 val timeStamp = call.parameters["afterTime"]
@@ -95,6 +95,23 @@ fun Route.reports(firebaseAuth: FirebaseAuth) {
                 if (response != null) {
                     call.respond(response)
                 } else call.respond(HttpStatusCode(404, "Not Found"), "Server Error")
+            }
+        }
+    }
+    get("/assigned"){
+        runVerified(firebaseAuth, call){phone->
+            val response = try{
+                val timeStamp = call.parameters["timeStamp"]?.toLong()
+                if(phone != null)
+                    reportsController.getAllAssignedReports(phone, timeStamp)
+                else
+                    null
+            } catch (e: Exception){
+                println(e.message)
+                null
+            }
+            if(response != null){
+                call.respond(response)
             }
         }
     }
