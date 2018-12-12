@@ -101,10 +101,14 @@ fun Route.users(firebaseAuth: FirebaseAuth){
         }
     }
 
-    get("/allAssignedReports"){
-        runVerified(firebaseAuth, call){phone->
+    get("/{id}/allAssignedReports"){
+        runVerified(firebaseAuth, call){
             val response = try{
-                userController.getAllAssignedReports(phone)
+                val phone = call.parameters["id"]
+                if(phone != null)
+                userController.getAllAssignedReports(phone.toLong())
+                else
+                    null
             } catch (e: Exception){
                 println(e.message)
                 null

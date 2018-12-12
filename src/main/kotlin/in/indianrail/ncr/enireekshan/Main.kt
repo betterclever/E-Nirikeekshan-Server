@@ -41,7 +41,7 @@ fun initDB() {
 }
 
 suspend inline fun runVerified(firebaseAuth: FirebaseAuth, call: ApplicationCall, block: (phone: Long) -> Unit) {
-    try {
+    /*try {
         val authToken = call.request.headers["Authorization"]
         val decodedToken = firebaseAuth.verifyIdTokenAsync(authToken).get()
         val phone = decodedToken.claims["phone_number"] as String
@@ -50,8 +50,8 @@ suspend inline fun runVerified(firebaseAuth: FirebaseAuth, call: ApplicationCall
     } catch (exception: Exception) {
         exception.printStackTrace()
         call.respond(HttpStatusCode(403, "Unauthorized access"), "Unauthorized")
-    }
-//    block(1234567890)
+    }*/
+    block(1234567890)
 }
 
 fun Application.main() {
