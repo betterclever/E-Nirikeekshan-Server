@@ -72,10 +72,10 @@ class ObservationController {
     fun updateObservationStatus(id: Int, status: String, senderID: Long) {
         // validate status
         return transaction {
-            Observations.update({
+            ObservationAssignees.update({
                 Observations.id eq id
             }) {
-                it[Observations.status] = status
+                it[ObservationAssignees.status] = status
             }
             val notificationMap = mapOf( "title" to "Observation status changed to $status by " +
                     "${UserEntity[senderID].designation}, ${UserEntity[senderID].location}",
@@ -109,10 +109,9 @@ fun ResultRow.prepareObservationModel() = ObservationModel(
         id = this[Observations.id].value,
         title = this[Observations.title],
         urgent = this[Observations.urgent],
-        status = this[Observations.status],
         reportID = this[Reports.id].value,
         timestamp = this[Observations.timestamp],
-        assignedToUsers = Observation[this[Observations.id]].assignedToUser.map { it.phone.value },
+        assignedToUsers = Observation[this[Observations.id]].getObservationModel().assignedToUsers,
         submittedBy = UserEntity[this[Reports.submittedBy]].getUserModel(),
         mediaItems = MediaItems.select { MediaItems.observationId eq this@prepareObservationModel[Observations.id].value }.map {
             MediaItemsModel(it[MediaItems.filePath])

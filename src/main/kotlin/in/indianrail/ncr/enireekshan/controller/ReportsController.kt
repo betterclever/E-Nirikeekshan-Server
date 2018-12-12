@@ -32,7 +32,6 @@ class ReportsController {
         report.observations.forEach { observation ->
             val newObservationID = Observations.insertAndGetId {
                 it[title] = observation.title
-                it[status] = STATUS_UNSEEN
                 it[urgent] = observation.urgent
                 it[reportID] = newReportID
                 it[timestamp] = observation.timestamp
@@ -43,6 +42,7 @@ class ReportsController {
                 val entry = ObservationAssignees.insert {
                     it[observationID] = newObservationID
                     it[userID] = EntityID(phone, Users)
+                    it[status] = STATUS_UNSEEN
                 }
                 assignedUser.add(phone)
             }

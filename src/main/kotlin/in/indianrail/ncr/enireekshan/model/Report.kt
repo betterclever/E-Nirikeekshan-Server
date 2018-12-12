@@ -57,7 +57,7 @@ data class ReportModel(
         this@ReportModel.observations.forEachIndexed { index, observationModel ->
             dataTable = observationModel.writeTableToPDF(dataTable, index)
             observationModel.assignedToUsers.forEach {
-                copyToUsers.add(UserEntity[it].designation)
+                copyToUsers.add(UserEntity[it.assignedUser].designation)
             }
         }
         yposition = max(yStart - dataTable.headerAndDataHeight - 50f, myPage.artBox.height * 0.4f)

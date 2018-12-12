@@ -36,7 +36,9 @@ class NotificationUtils {
                                  messageData: Map<String, String> = emptyMap()) {
         val sentByUser = UserEntity[senderID]
         val observationID = EntityID(observationId, Observations)
-        val userAssignedForObservation = Observation[observationID].assignedToUser.map { it.phone.value }
+        val userAssignedForObservation = Observation[observationID].getObservationModel().assignedToUsers.map{
+            it.assignedUser
+        }
         val observationCreatedByUser = (Observations innerJoin Reports).select { Observations.id eq observationID }.map {
             it[Reports.submittedBy].value
         }[0]

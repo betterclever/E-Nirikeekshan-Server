@@ -2,7 +2,7 @@ package `in`.indianrail.ncr.enireekshan.routes
 
 import `in`.indianrail.ncr.enireekshan.controller.ObservationController
 import `in`.indianrail.ncr.enireekshan.model.MessageCreateModel
-import `in`.indianrail.ncr.enireekshan.model.ObservationStatusUpdateModel
+import `in`.indianrail.ncr.enireekshan.model.   ObservationStatusUpdateModel
 import `in`.indianrail.ncr.enireekshan.runVerified
 import com.google.firebase.auth.FirebaseAuth
 import io.ktor.application.application

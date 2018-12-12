@@ -2,6 +2,7 @@ package `in`.indianrail.ncr.enireekshan.model
 
 import `in`.indianrail.ncr.enireekshan.TableWriterInterface
 import `in`.indianrail.ncr.enireekshan.createStringFromCollection
+import `in`.indianrail.ncr.enireekshan.dao.ObservationAssignees
 import `in`.indianrail.ncr.enireekshan.dao.Users
 import be.quodlibet.boxable.BaseTable
 import org.jetbrains.exposed.sql.select
@@ -9,17 +10,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.awt.Color
 import java.io.File
 
-val STATUS_UNSEEN = "unseen"
-val STATUS_SEEN = "seen"
-val STATUS_COMPLIED = "complied"
 val baseDir = File("/home/enireekshan/server-uploads")
 val marginList = listOf(10f,60f,30f)
 val headerList = listOf("Sl.", "Title", "Assigned To")
+
 data class ObservationModel(
-        val assignedToUsers: List<Long>,
+        val assignedToUsers: List<ObservationAssigneesModel>,
         val id: Int,
         val reportID: Int,
-        val status: String,
         val timestamp: Long,
         val title: String,
         val urgent: Boolean,
@@ -40,7 +38,7 @@ data class ObservationModel(
     }
 
     override fun writeTableToPDF(dataTable: BaseTable, index : Int) : BaseTable{
-        val assignedToUserNameList = transaction { Users.select { Users.id inList  assignedToUsers.map { it } }.map{
+        val assignedToUserNameList = transaction { Users.select { Users.id inList  assignedToUsers.map { it.assignedUser } }.map{
             it[Users.designation]
         } }
         var assignedUserString = createStringFromCollection(assignedToUserNameList)
@@ -72,8 +70,4 @@ data class ObservationCreateModel(
         val assignedToUsers: List<Long>,
         val timestamp: Long,
         val mediaLinks: List<String>
-)
-data class ObservationStatusUpdateModel(
-        val status: String,
-        val senderID: Long
 )
