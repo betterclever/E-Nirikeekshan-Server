@@ -69,7 +69,7 @@ fun Route.reports(firebaseAuth: FirebaseAuth) {
     get("/sent") {
         runVerified(firebaseAuth, call) {phone->
             val response = try {
-                val timeStamp = call.parameters["afterTime"]
+                val timeStamp = call.parameters["before"]
                 reportsController.getReportsByUser(phone, timeStamp?.toLong())
             } catch (exception: Exception) {
                 exception.printStackTrace()
@@ -101,7 +101,7 @@ fun Route.reports(firebaseAuth: FirebaseAuth) {
     get("/assigned"){
         runVerified(firebaseAuth, call){phone->
             val response = try{
-                val timeStamp = call.parameters["timeStamp"]?.toLong()
+                val timeStamp = call.parameters["before"]?.toLong()
                 if(phone != null)
                     reportsController.getAllAssignedReports(phone, timeStamp)
                 else

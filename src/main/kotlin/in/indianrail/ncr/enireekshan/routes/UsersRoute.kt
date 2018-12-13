@@ -19,6 +19,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
             call.respond(userController.getLocations())
         }
     }
+
     get("/{location}/departments") {
         runVerified(firebaseAuth, call) {
             val location = call.parameters["location"]
@@ -29,6 +30,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
             }
         }
     }
+
     get("/{location}/{department}/designations") {
         runVerified(firebaseAuth, call) {
             val location = call.parameters["location"]
@@ -94,6 +96,7 @@ fun Route.users(firebaseAuth: FirebaseAuth){
             }
         }
     }
+
     post("{id}/updateFCMToken") {
         runVerified(firebaseAuth, call) {phone->
             val token = call.receive<String>().substringAfter("\"").substringBefore("\"")
