@@ -31,10 +31,10 @@ class ObservationController {
         }
     }
 
-    fun addMessage(messageModel: MessageCreateModel, senderID: Long) = transaction {
+    fun addMessage(messageModel: MessageCreateModel, senderID: Long, observationID: Int) = transaction {
         val newMessgaeID = Messages.insertAndGetId {
             it[message] = messageModel.message
-            it[observation] = EntityID(messageModel.observationID, Observations)
+            it[observation] = EntityID(observationID, Observations)
             it[sender] = EntityID(senderID, Users)
             it[timestamp] = messageModel.timestamp
         }
@@ -44,11 +44,11 @@ class ObservationController {
         val notificationMap = mapOf("title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
                 "body" to messageModel.message)
         val messageData = mapOf(
-                "intentId" to messageModel.observationID.toString(),
+                "intentId" to observationID.toString(),
                 "title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
                 "body" to messageModel.message
         )
-        notificationUtils.sendNotificationForEvent(messageModel.observationID,
+        notificationUtils.sendNotificationForEvent(observationID,
                 senderID,
                 notificationMap,
                 messageData)

@@ -72,7 +72,7 @@ fun Route.observations(firebaseAuth: FirebaseAuth){
             if (idS != null) {
                 try {
                     val id = idS.toInt()
-                    call.respond(observationController.addMessage(message, it))
+                    call.respond(observationController.addMessage(message, it, id))
                 } catch (expection: Exception) {
                     expection.printStackTrace()
                     call.respond(HttpStatusCode(404, "Not Found"), "Server Error")

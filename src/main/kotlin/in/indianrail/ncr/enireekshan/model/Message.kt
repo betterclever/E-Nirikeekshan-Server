@@ -11,7 +11,5 @@ data class MessageModel(
 
 data class MessageCreateModel(
         val message: String,
-        val sender: Long,
-        val observationID: Int,
         val timestamp: Long
 )
