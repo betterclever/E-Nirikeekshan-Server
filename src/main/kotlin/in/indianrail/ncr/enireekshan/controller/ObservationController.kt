@@ -31,24 +31,29 @@ class ObservationController {
         }
     }
 
-    fun addMessage(messageModel: MessageCreateModel, senderID: Long, observationID: Int) = transaction {
+    fun addMessage(messageModel: MessageCreateModel, senderID: Long, observationId: Int) = transaction {
         val newMessgaeID = Messages.insertAndGetId {
             it[message] = messageModel.message
-            it[observation] = EntityID(observationID, Observations)
+            it[observation] = EntityID(observationId, Observations)
             it[sender] = EntityID(senderID, Users)
             it[timestamp] = messageModel.timestamp
         }
+        val reportID = (Observations).select{ Observations.id eq observationId}.map{
+            it[Observations.reportID]
+        }[0]
         val sentByUser =  Users.select{ Users.id eq senderID}.map{
             it.prepareUserModel()
         }
-        val notificationMap = mapOf("title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
+        val notificationMap = mapOf("title" to "${sentByUser[0].designation} , ${sentByUser[0].location} replied to an Observation",
                 "body" to messageModel.message)
         val messageData = mapOf(
-                "intentID" to observationID.toString(),
+                "typeOfNotification" to "message",
+                "observationId" to observationId.toString(),
+                "reportId" to reportID.toString(),
                 "title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
                 "body" to messageModel.message
         )
-        notificationUtils.sendNotificationForEvent(observationID,
+        notificationUtils.sendNotificationForEvent(observationId,
                 senderID,
                 notificationMap,
                 messageData)
@@ -56,7 +61,7 @@ class ObservationController {
                 id = newMessgaeID.value,
                 message = messageModel.message,
                 sender = UserEntity[senderID].getUserModel(),
-                observationID = observationID,
+                observationID = observationId,
                 timestamp = messageModel.timestamp
         )
     }
@@ -75,22 +80,28 @@ class ObservationController {
         } else null
     }
 
-    fun updateObservationStatus(id: Int, status: String, senderID: Long) {
+    fun updateObservationStatus(observationId: Int, status: String, senderID: Long) {
         // validate status
         return transaction {
             ObservationAssignees.update({
-                Observations.id eq id
+                Observations.id eq observationId
             }) {
                 it[ObservationAssignees.status] = status
             }
+            val reportId = Observations.select{ Observations.id eq observationId}.map{
+                it[Observations.reportID]
+            }[0]
             val notificationMap = mapOf( "title" to "Observation status changed to $status by " +
                     "${UserEntity[senderID].designation}, ${UserEntity[senderID].location}",
-                        "body" to Observation[id].title)
-            val dataMap = mapOf("intentID" to id.toString(),
+                        "body" to Observation[observationId].title)
+            val dataMap = mapOf(
+                    "typeOfNotification" to "status",
+                    "reportId" to reportId.toString(),
+                    "observationId" to observationId.toString(),
                     "title" to "Observation status changed to $status by " +
                             "${UserEntity[senderID].designation}, ${UserEntity[senderID].location}",
-                    "body" to Observation[id].title)
-            notificationUtils.sendNotificationForEvent(id, senderID, notificationMap, dataMap)
+                    "body" to Observation[observationId].title)
+            notificationUtils.sendNotificationForEvent(observationId, senderID, notificationMap, dataMap)
         }
     }
 

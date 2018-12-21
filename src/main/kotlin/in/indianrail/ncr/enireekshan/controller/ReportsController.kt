@@ -62,7 +62,8 @@ class ReportsController {
                 "body" to report.title
         )
         val messageData = mapOf(
-                "intentID" to newReportID.value.toString(),
+                "typeOfNotification" to "report",
+                "reportId" to newReportID.value.toString(),
                 "title" to "${sentByUser[0].designation}, ${sentByUser[0].location} tagged you in an Inspection",
                 "body" to report.title
         )
