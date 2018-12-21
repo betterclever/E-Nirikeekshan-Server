@@ -3,6 +3,7 @@ package `in`.indianrail.ncr.enireekshan.model
 import `in`.indianrail.ncr.enireekshan.dao.UserEntity
 
 data class MessageModel(
+        val id: Int,
         val message: String,
         val sender: UserModel,
         val observationID: Int,

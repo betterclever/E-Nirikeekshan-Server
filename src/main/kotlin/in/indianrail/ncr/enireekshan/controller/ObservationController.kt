@@ -52,7 +52,13 @@ class ObservationController {
                 senderID,
                 notificationMap,
                 messageData)
-        newMessgaeID.value
+        MessageModel(
+                id = newMessgaeID.value,
+                message = messageModel.message,
+                sender = UserEntity[senderID].getUserModel(),
+                observationID = observationID,
+                timestamp = messageModel.timestamp
+        )
     }
 
     fun getMessages(observationID: Int): List<MessageModel> = transaction {
@@ -97,6 +103,7 @@ class ObservationController {
     }
 
     private fun ResultRow.prepareMessageModel() = MessageModel(
+            id = this[Messages.id].value,
             message = this[Messages.message],
             sender = UserEntity[this[Messages.sender]].getUserModel(),
             observationID = this[Messages.observation].value,

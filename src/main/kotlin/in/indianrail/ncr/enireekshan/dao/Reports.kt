@@ -15,14 +15,14 @@ object Reports : IntIdTable() {
 class Report(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Report>(Reports)
 
-    var ReportID by Reports.id
+    var reportID by Reports.id
     var submittedBy by UserEntity referencedOn Reports.submittedBy
     val observations by Observation referrersOn Observations.reportID
     val timestamp by Reports.timestamp
     val title by Reports.title
 
     fun getReportModel() = ReportModel(
-            id = ReportID.value,
+            id = reportID.value,
             submittedBy = submittedBy.getUserModel(),
             observations = observations.map{ it.getObservationModel() },
             timestamp =  timestamp,

@@ -13,12 +13,14 @@ object Messages: IntIdTable() {
 class Message(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<Message>(Messages)
 
+    var messageID by Messages.id
     var message by Messages.message
     var timestamp by Messages.timestamp
     var sender by UserEntity referencedOn Messages.sender
     var inspection by Observation referencedOn Messages.observation
 
     fun getIMessageModel() = MessageModel(
+            id = messageID.value,
             message = message,
             sender = sender.getUserModel(),
             observationID = inspection.observationID.value,
