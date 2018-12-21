@@ -44,7 +44,7 @@ class ObservationController {
         val notificationMap = mapOf("title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
                 "body" to messageModel.message)
         val messageData = mapOf(
-                "intentId" to observationID.toString(),
+                "intentID" to observationID.toString(),
                 "title" to "Message from ${sentByUser[0].designation} , ${sentByUser[0].location}",
                 "body" to messageModel.message
         )
